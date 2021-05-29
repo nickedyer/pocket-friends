@@ -108,7 +108,7 @@ try:
     importlib.util.find_spec('RPi.GPIO')
     import RPi.GPIO as GPIO
 except ImportError:
-    import data.development.FakeGPIO as GPIO
+    import pocket_friends.development.FakeGPIO as GPIO
 
 
 def game():
