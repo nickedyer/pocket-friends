@@ -132,4 +132,4 @@ dmypy.json
 /compile.bat
 
 # save file
-/pocket_friends/save.json
+/pocket_friends/game_files/save.json
