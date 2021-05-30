@@ -143,6 +143,10 @@ def game():
     # Only really useful for PCs. Does nothing on the Raspberry Pi.
     pygame.display.set_caption('Pocket Friends {0}'.format(pocket_friends.__version__))
 
+    # Add an icon to the pygame window.
+    icon = pygame.image.load(script_dir + '/resources/images/icon/icon.png').convert_alpha()
+    pygame.display.set_icon(icon)
+
     clock = pygame.time.Clock()
 
     # Font used for small text in the hardware. Bigger text is usually image files.
