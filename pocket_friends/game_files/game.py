@@ -9,8 +9,8 @@ import pygame
 from pygame.locals import *
 from ..hardware.gpio_handler import Constants, GPIOHandler
 
-version = '0.0.1'
 game_fps = 16
+script_dir = os.path.dirname(__file__)
 
 
 class FileHandler:
@@ -33,7 +33,7 @@ class FileHandler:
         """
         Writes attributes of class to "save.json" file.
         """
-        with open('pocket_friends/save.json', 'w') as save_file:
+        with open(script_dir + '/save.json', 'w') as save_file:
             json.dump(self.attributes, save_file)
             save_file.close()
 
@@ -43,7 +43,7 @@ class FileHandler:
         """
         # Open up the save file and read it into self.attributes.
         try:
-            with open('save.json', 'r') as save_file:
+            with open(script_dir + '/save.json', 'r') as save_file:
                 self.attributes = json.load(save_file)
                 save_file.close()
 
@@ -69,7 +69,7 @@ class SelectionEgg(pygame.sprite.Sprite):
     def __init__(self, egg_color):
         pygame.sprite.Sprite.__init__(self)
 
-        image_directory = 'pocket_friends/resources/images/egg_images/{0}'.format(egg_color)
+        image_directory = script_dir + '/resources/images/egg_images/{0}'.format(egg_color)
 
         # Load the egg from the given color and get the bounding rectangle for the image.
         self.images = []
@@ -134,7 +134,7 @@ def game():
     clock = pygame.time.Clock()
 
     # Font used for small text in the hardware. Bigger text is usually image files.
-    small_font = pygame.font.Font('pocket_friends/resources/fonts/5Pts5.ttf', 10)
+    small_font = pygame.font.Font(script_dir + '/resources/fonts/5Pts5.ttf', 10)
 
     # Default hardware state when the hardware first starts.
     game_state = 'title'
@@ -179,7 +179,7 @@ def game():
         """
         Draws the main hardware background image onto a given surface.
         """
-        bg_image = pygame.image.load('pocket_friends/resources/images/bg.png').convert()
+        bg_image = pygame.image.load(script_dir + '/resources/images/bg.png').convert()
         surface.blit(bg_image, (0, 0))
 
     def log_button(pressed_button):
@@ -274,7 +274,7 @@ def game():
             pre_handler()
 
             # Draw the title image in the middle of the screen.
-            title_image = pygame.image.load('pocket_friends/resources/images/title.png').convert_alpha()
+            title_image = pygame.image.load(script_dir + '/resources/images/title.png').convert_alpha()
             surface.blit(title_image, (0, 0))
             draw()
 
@@ -419,7 +419,7 @@ def game():
                                     submenu = 'egg_info'
 
                         # Draws the cursor on screen.
-                        cursor = pygame.image.load('pocket_friends/resources/images/clock_selector.png').convert_alpha()
+                        cursor = pygame.image.load(script_dir + '/resources/images/clock_selector.png').convert_alpha()
                         surface.blit(cursor, get_cursor_coords(selected))
 
                         draw()
@@ -456,7 +456,7 @@ def game():
                 pre_handler()
 
                 # Draw the error screen
-                error_screen = pygame.image.load('pocket_friends/resources/images/debug/invalid.png').convert_alpha()
+                error_screen = pygame.image.load(script_dir + '/resources/images/debug/invalid.png').convert_alpha()
                 surface.blit(error_screen, (0, -8))
 
                 # Counts the frames passed. Resets every second.
