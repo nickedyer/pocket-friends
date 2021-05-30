@@ -1,1 +1,1 @@
-"""Imports classes for running the game."""
+"""Imports classes for running the hardware."""

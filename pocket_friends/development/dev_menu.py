@@ -1,14 +1,14 @@
 """
-Development menu for the game on Raspberry Pi. NOTE: THIS DOES NOTHING ON A COMPUTER!
+Development menu for the hardware on Raspberry Pi. NOTE: THIS DOES NOTHING ON A COMPUTER!
 """
-import pocket_friends.game
+import pocket_friends.game_files.game
 import importlib.util
 import os
 import pygame
 import time
 from .button_test import button_test
 from .menus import Menu
-from ..gpio_handler import GPIOHandler, Constants
+from pocket_friends.hardware.gpio_handler import GPIOHandler, Constants
 
 dev_version = '0.0.1'
 
@@ -40,10 +40,10 @@ def clear_screen():
 
 def start_game():
     """
-    Cleans the GPIO and starts the game.
+    Cleans the GPIO and starts the hardware.
     """
     GPIOHandler.teardown()
-    pocket_friends.game.main()
+    pocket_friends.game_files.game.main()
     pygame.quit()
     GPIOHandler.setup()
 
@@ -95,7 +95,7 @@ def main():
 
     # The following defines all of the options in the various different menus.
 
-    main_menu = Menu('Pocket Friends Dev Menu {0}\nGame Version {1}'.format(dev_version, pocket_friends.game.version))
+    main_menu = Menu('Pocket Friends Dev Menu {0}\nGame Version {1}'.format(dev_version, pocket_friends.game_files.game.version))
     main_menu.add_option(Menu.Option('Start Game', start_game))
     main_menu.add_option(Menu.Option('Button Test', run_button_test))
     main_menu.add_option(Menu.Option('Restart Dev Menu', quit_with_error))

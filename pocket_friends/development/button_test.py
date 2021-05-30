@@ -2,7 +2,7 @@
 Module to test the GPIO input on the Raspberry Pi.
 """
 from collections import deque
-from ..gpio_handler import Constants, GPIOHandler
+from pocket_friends.hardware.gpio_handler import Constants, GPIOHandler
 
 
 def button_test():

@@ -1,5 +1,5 @@
 """
-Main file for the entire game. Controls everything except for GPIO input.
+Main file for the entire hardware. Controls everything except for GPIO input.
 """
 from collections import deque
 import importlib.util
@@ -7,7 +7,7 @@ import json
 import os
 import pygame
 from pygame.locals import *
-from .gpio_handler import Constants, GPIOHandler
+from pocket_friends.hardware.gpio_handler import Constants, GPIOHandler
 
 version = '0.0.1'
 game_fps = 16
@@ -15,7 +15,7 @@ game_fps = 16
 
 class FileHandler:
     """
-    Class that handles the game attributes and save files.
+    Class that handles the hardware attributes and save files.
     """
 
     def __init__(self):
@@ -69,7 +69,7 @@ class SelectionEgg(pygame.sprite.Sprite):
     def __init__(self, egg_color):
         pygame.sprite.Sprite.__init__(self)
 
-        image_directory = 'resources/images/egg_images/{0}'.format(egg_color)
+        image_directory = 'pocket_friends/resources/images/egg_images/{0}'.format(egg_color)
 
         # Load the egg from the given color and get the bounding rectangle for the image.
         self.images = []
@@ -113,14 +113,14 @@ except ImportError:
 
 def game():
     """
-    Starts the game.
+    Starts the hardware.
     """
     pygame.init()
 
     # Hide the cursor for the Pi display.
     pygame.mouse.set_visible(False)
 
-    # The game is normally rendered at 80 pixels and upscaled from there. If changing displays, change the
+    # The hardware is normally rendered at 80 pixels and upscaled from there. If changing displays, change the
     # screen_size to reflect what the resolution of the new display is.
     rendered_size = 80
     screen_size = 800
@@ -133,10 +133,10 @@ def game():
 
     clock = pygame.time.Clock()
 
-    # Font used for small text in the game. Bigger text is usually image files.
-    small_font = pygame.font.Font('resources/fonts/5Pts5.ttf', 10)
+    # Font used for small text in the hardware. Bigger text is usually image files.
+    small_font = pygame.font.Font('pocket_friends/resources/fonts/5Pts5.ttf', 10)
 
-    # Default game state when the game first starts.
+    # Default hardware state when the hardware first starts.
     game_state = 'title'
     running = True
     file_handler = FileHandler()
@@ -147,7 +147,7 @@ def game():
     # Start the GPIO handler to take in buttons from the RPi HAT.
     GPIOHandler.setup()
 
-    # Dev code used to exit the game. Default Down, Down, Up, Up, Down, Down, Up, Up, A, A, B
+    # Dev code used to exit the hardware. Default Down, Down, Up, Up, Down, Down, Up, Up, A, A, B
     dev_code = deque()
     for button in [Constants.buttons.get('j_d'), Constants.buttons.get('j_d'), Constants.buttons.get('j_u'),
                    Constants.buttons.get('j_u'), Constants.buttons.get('j_d'), Constants.buttons.get('j_d'),
@@ -177,9 +177,9 @@ def game():
 
     def draw_bg():
         """
-        Draws the main game background image onto a given surface.
+        Draws the main hardware background image onto a given surface.
         """
-        bg_image = pygame.image.load('resources/images/bg.png').convert()
+        bg_image = pygame.image.load('pocket_friends/resources/images/bg.png').convert()
         surface.blit(bg_image, (0, 0))
 
     def log_button(pressed_button):
@@ -226,7 +226,7 @@ def game():
 
     def keyboard_handler():
         """
-        Simulates key presses to GPIO button presses. Also handles quitting the game.
+        Simulates key presses to GPIO button presses. Also handles quitting the hardware.
         """
         nonlocal running
 
@@ -254,10 +254,10 @@ def game():
 
     def pre_handler():
         """
-        Runs at the beginning of each loop, handles drawing the background, controlling game speed, and
+        Runs at the beginning of each loop, handles drawing the background, controlling hardware speed, and
         controlling the GPIO button inputs and keyboard handler
         """
-        # Regulate the speed of the game.
+        # Regulate the speed of the hardware.
         clock.tick(game_fps)
 
         # Handle all inputs for both debugging and real GPIO button presses.
@@ -274,11 +274,11 @@ def game():
             pre_handler()
 
             # Draw the title image in the middle of the screen.
-            title_image = pygame.image.load('resources/images/title.png').convert_alpha()
+            title_image = pygame.image.load('pocket_friends/resources/images/title.png').convert_alpha()
             surface.blit(title_image, (0, 0))
             draw()
 
-            # Show the title for 1 second then move on to the initialization phase of the game.
+            # Show the title for 1 second then move on to the initialization phase of the hardware.
             pygame.time.wait(1000)
             game_state = 'init'
 
@@ -294,8 +294,8 @@ def game():
             # Read the save file.
             file_handler.read_save()
 
-            # Determines if it is a new game or not by looking at the evolution stage. If it is -1, the egg has
-            # not been created yet, and the game sends you to the egg selection screen. If not, the game sends
+            # Determines if it is a new hardware or not by looking at the evolution stage. If it is -1, the egg has
+            # not been created yet, and the hardware sends you to the egg selection screen. If not, the hardware sends
             # you to the playground.
             if file_handler.attributes['evolution_stage'] == -1:
                 game_state = 'egg_select'
@@ -419,7 +419,7 @@ def game():
                                     submenu = 'egg_info'
 
                         # Draws the cursor on screen.
-                        cursor = pygame.image.load('resources/images/clock_selector.png').convert_alpha()
+                        cursor = pygame.image.load('pocket_friends/resources/images/clock_selector.png').convert_alpha()
                         surface.blit(cursor, get_cursor_coords(selected))
 
                         draw()
@@ -430,7 +430,7 @@ def game():
                         for event in pygame.event.get():
                             if event.type == pygame.KEYDOWN:
                                 if event.key == Constants.buttons.get('a'):
-                                    # Go to an invalid game state if continuing.
+                                    # Go to an invalid hardware state if continuing.
                                     game_state = None
                                 if event.key == Constants.buttons.get('b'):
                                     # Go back to the egg selection screen.
@@ -446,17 +446,17 @@ def game():
                     game_state = None
 
         else:
-            # Error screen. This appears when an invalid game state has been selected.
+            # Error screen. This appears when an invalid hardware state has been selected.
 
             all_sprites.empty()
-            frames_passed = 0  # Counter for frames, helps ensure the game isnt frozen.
+            frames_passed = 0  # Counter for frames, helps ensure the hardware isnt frozen.
 
             while running and game_state != 'title':
 
                 pre_handler()
 
                 # Draw the error screen
-                error_screen = pygame.image.load('resources/images/debug/invalid.png').convert_alpha()
+                error_screen = pygame.image.load('pocket_friends/resources/images/debug/invalid.png').convert_alpha()
                 surface.blit(error_screen, (0, -8))
 
                 # Counts the frames passed. Resets every second.
@@ -479,7 +479,7 @@ def game():
 
 def main():
     """
-    Calls the game() function to start the game.
+    Calls the hardware() function to start the hardware.
     """
     game()
 

@@ -1,6 +1,6 @@
 """
 Module used to fake the RPi.GPIO module so that
-the game can be run without the actual hardware.
+the hardware can be run without the actual hardware.
 """
 
 # Constants used by RPi.GPIO
