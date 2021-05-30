@@ -7,7 +7,7 @@ import json
 import os
 import pygame
 from pygame.locals import *
-from pocket_friends.hardware.gpio_handler import Constants, GPIOHandler
+from ..hardware.gpio_handler import Constants, GPIOHandler
 
 version = '0.0.1'
 game_fps = 16
@@ -33,7 +33,7 @@ class FileHandler:
         """
         Writes attributes of class to "save.json" file.
         """
-        with open('save.json', 'w') as save_file:
+        with open('pocket_friends/save.json', 'w') as save_file:
             json.dump(self.attributes, save_file)
             save_file.close()
 

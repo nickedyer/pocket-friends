@@ -8,7 +8,7 @@ import pygame
 import time
 from .button_test import button_test
 from .menus import Menu
-from pocket_friends.hardware.gpio_handler import GPIOHandler, Constants
+from ..hardware.gpio_handler import GPIOHandler, Constants
 
 dev_version = '0.0.1'
 
