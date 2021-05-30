@@ -12,12 +12,12 @@ There are currently no releases of the game. To install the current version on G
 
 ## Installing From Source
 
-Since this game is made in Python, it is fairly easy to set up and install as long as you have Python installed.
-Ensure you also have pip installed, as it is required to install Pocket Friends as well.
+Requirements:
+- Python 3.6 or greater
+- Pip
+- Git
 
-### You must have Python 3.6 or greater to install Pocket Friends.
-
-Once you have Python installed, getting Pocket Friends installed is easy; just install it using pip and you're ready to go!
+All you need to do to install Pocket Friends is install it with pip and you're good to go!
 
 `pip install git+https://github.com/nickedyer/pocket-friends.git`
 
