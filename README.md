@@ -36,6 +36,7 @@ issue the following:
 git clone https://github.com/nickedyer/pocket-friends.git
 cd pocket-friends
 pip install -r requirements.txt
+pip install pyinstaller
 python compile.py
 ```
 The compiled executable will then be in the `pocket-friends\dist` directory.
