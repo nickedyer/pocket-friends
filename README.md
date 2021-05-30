@@ -26,3 +26,16 @@ Now that the game is installed, just run it like you would any other Python prog
 `python -m pocket_friends`
 
 ...and that's it! You now have the latest dev build of Pocket Friends installed on your system!
+
+## Building for Windows
+
+If you wish to build this version of Pocket Friends for Windows, you will need the same
+requirements as to install it to your system from source. After you have done that,
+issue the following:
+```
+git clone https://github.com/nickedyer/pocket-friends.git
+cd pocket-friends
+pip install -r requirements.txt
+python compile.py
+```
+The compiled executable will then be in the `pocket-friends\dist` directory.
