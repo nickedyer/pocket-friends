@@ -1,5 +1,5 @@
 
-![Pocket Friends](https://github.com/nickedyer/pocket-friends/blob/master/resources/images/promotional.png?raw=true)
+![Pocket Friends](https://github.com/nickedyer/pocket-friends/blob/master/pocket_friends/game_files/resources/images/promotional.png?raw=true)
 
 [![License: GNU GPL v3.0](https://img.shields.io/badge/license-GNU%20GPL%20v3.0-blue)](LICENSE)
 
