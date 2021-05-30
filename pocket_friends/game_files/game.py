@@ -15,7 +15,7 @@ from ..hardware.gpio_handler import Constants, GPIOHandler
 game_fps = 16
 
 # Gets the directory of the script for importing and the save directory
-script_dir = os.path.dirname(__file__)
+script_dir = os.path.dirname(os.path.abspath(__file__))
 save_dir = os.path.join(Path.home(), '.pocket_friends')
 
 # Tries to make the save directory. Does nothing if it already exists.
