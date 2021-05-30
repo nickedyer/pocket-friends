@@ -3,12 +3,13 @@ Launch script for Pocket Friends.
 """
 import pygame
 import sys
-from data.game import main as game_main
-from data.development.dev_menu import main as dev_menu_main
+from pocket_friends.game_files.game import main as game_main
+from pocket_friends.development.dev_menu import main as dev_menu_main
 
-enable_dev = False
+__version__ = '0.0.1'
 
 if __name__ == '__main__':
+    enable_dev = False
 
     # enable dev mode if --dev argument is passed
     if len(sys.argv) > 0:
