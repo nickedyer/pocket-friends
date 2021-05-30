@@ -8,9 +8,20 @@ import os
 import pygame
 from pygame.locals import *
 from ..hardware.gpio_handler import Constants, GPIOHandler
+from pathlib import Path
 
+# FPS for the entire game to run at.
 game_fps = 16
+
+# Gets the directory of the script for importing and the save directory
 script_dir = os.path.dirname(__file__)
+save_dir = os.path.join(Path.home(), '.pocket_friends')
+
+# Tries to make the save directory. Does nothing if it already exists.
+try:
+    os.mkdir(save_dir)
+except FileExistsError:
+    pass
 
 
 class FileHandler:
@@ -33,7 +44,7 @@ class FileHandler:
         """
         Writes attributes of class to "save.json" file.
         """
-        with open(script_dir + '/save.json', 'w') as save_file:
+        with open(save_dir + '/save.json', 'w') as save_file:
             json.dump(self.attributes, save_file)
             save_file.close()
 
@@ -43,7 +54,7 @@ class FileHandler:
         """
         # Open up the save file and read it into self.attributes.
         try:
-            with open(script_dir + '/save.json', 'r') as save_file:
+            with open(save_dir + '/save.json', 'r') as save_file:
                 self.attributes = json.load(save_file)
                 save_file.close()
 
