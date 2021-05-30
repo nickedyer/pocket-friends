@@ -93,8 +93,7 @@ def main():
 
     # The following defines all of the options in the various different menus.
 
-    main_menu = Menu(
-        'Pocket Friends Dev Menu {0}\nGame Version {1}'.format(dev_version, pocket_friends.game_files.game.version))
+    main_menu = Menu('Pocket Friends Dev Menu')
     main_menu.add_option(Menu.Option('Start Game', start_game))
     main_menu.add_option(Menu.Option('Button Test', run_button_test))
     main_menu.add_option(Menu.Option('Restart Dev Menu', quit_with_error))

@@ -5,10 +5,11 @@ from collections import deque
 import importlib.util
 import json
 import os
+from pathlib import Path
+import pocket_friends
 import pygame
 from pygame.locals import *
 from ..hardware.gpio_handler import Constants, GPIOHandler
-from pathlib import Path
 
 # FPS for the entire game to run at.
 game_fps = 16
@@ -140,7 +141,7 @@ def game():
     surface = pygame.Surface((rendered_size, rendered_size))
 
     # Only really useful for PCs. Does nothing on the Raspberry Pi.
-    pygame.display.set_caption('Pocket Friends')
+    pygame.display.set_caption('Pocket Friends {0}'.format(pocket_friends.__version__))
 
     clock = pygame.time.Clock()
 
