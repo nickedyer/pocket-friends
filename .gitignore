@@ -128,8 +128,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# pocket-friends compile script
-/compile.bat
-
 # save file
 /pocket_friends/game_files/save.json
+
