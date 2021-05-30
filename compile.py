@@ -9,7 +9,7 @@ PyInstaller.__main__.run([
     '--clean',
     '--noconsole',
     '--onefile',
-    '--name=pocket_friends-{0}'.format(pocket_friends.__version__),
+    '--name=pocket_friends_{0}'.format(pocket_friends.__version__),
     '--collect-all=pocket_friends',
     '--icon={0}/pocket_friends/game_files/resources/images/icon/icon.ico'.format(script_dir)
 ])
