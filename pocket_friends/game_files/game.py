@@ -81,6 +81,8 @@ class SelectionEgg(pygame.sprite.Sprite):
     def __init__(self, egg_color):
         pygame.sprite.Sprite.__init__(self)
 
+        self.egg_color = egg_color
+
         # Loads the JSON file of the egg to read in data.
         with open(script_dir + '/resources/data/egg_info/{0}.json'.format(egg_color), 'r') as save_file:
             json_file = json.load(save_file)
@@ -331,9 +333,12 @@ def game():
             submenu = 'main'
 
             selected = 0
+            selected_color = ""
 
             while running and game_state == 'egg_select':
+
                 all_sprites.empty()
+
                 if submenu == 'main':
 
                     # Creates and holds the egg objects in a list.
@@ -442,11 +447,22 @@ def game():
                         cursor = pygame.image.load(script_dir + '/resources/images/clock_selector.png').convert_alpha()
                         surface.blit(cursor, get_cursor_coords(selected))
 
+                        selected_color = eggs[selected].egg_color
+
                         draw()
 
                 elif submenu == 'egg_info':
+
+                    # Draw the selected egg on screen
+                    egg = SelectionEgg(selected_color)
+                    egg.rect.x = 32
+                    egg.rect.y = 3
+                    all_sprites.add(egg)
+
                     while running and game_state == 'egg_select' and submenu == 'egg_info':
+
                         pre_handler()
+
                         for event in pygame.event.get():
                             if event.type == pygame.KEYDOWN:
                                 if event.key == Constants.buttons.get('a'):
@@ -457,7 +473,7 @@ def game():
                                     submenu = 'main'
 
                         # Quick debugging for which egg is selected.
-                        selection_debug = small_font.render('Egg {0}'.format(selected), False, (64, 64, 64))
+                        selection_debug = small_font.render(egg.description, False, (64, 64, 64))
                         surface.blit(selection_debug, (5, 35))
 
                         draw()
