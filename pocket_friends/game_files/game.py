@@ -373,7 +373,6 @@ def game():
 
                         # Add the egg to the sprite list.
                         all_sprites.add(egg)
-                    selected = 0
 
                     def get_cursor_coords(selection):
                         """
@@ -485,7 +484,7 @@ def game():
             # Error screen. This appears when an invalid hardware state has been selected.
 
             all_sprites.empty()
-            frames_passed = 0  # Counter for frames, helps ensure the hardware isnt frozen.
+            frames_passed = 0  # Counter for frames, helps ensure the hardware isn't frozen.
 
             while running and game_state != 'title':
 
