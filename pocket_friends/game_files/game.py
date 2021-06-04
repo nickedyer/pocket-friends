@@ -81,7 +81,14 @@ class SelectionEgg(pygame.sprite.Sprite):
     def __init__(self, egg_color):
         pygame.sprite.Sprite.__init__(self)
 
+        # Loads the JSON file of the egg to read in data.
+        with open(script_dir + '/resources/data/egg_info/{0}.json'.format(egg_color), 'r') as save_file:
+            json_file = json.load(save_file)
+            save_file.close()
         image_directory = script_dir + '/resources/images/egg_images/{0}'.format(egg_color)
+
+        # Gets the description off the egg from the JSON file.
+        self.description = json_file.get('description')
 
         # Load the egg from the given color and get the bounding rectangle for the image.
         self.images = []
