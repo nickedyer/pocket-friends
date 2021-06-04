@@ -25,7 +25,7 @@ except FileExistsError:
     pass
 
 
-class FileHandler:
+class SaveHandler:
     """
     Class that handles the hardware attributes and save files.
     """
@@ -155,7 +155,7 @@ def game():
     # Default hardware state when the hardware first starts.
     game_state = 'title'
     running = True
-    file_handler = FileHandler()
+    save_handler = SaveHandler()
 
     # A group of all the sprites on screen. Used to update all sprites at onc
     all_sprites = pygame.sprite.Group()
@@ -308,12 +308,12 @@ def game():
             draw()
 
             # Read the save file.
-            file_handler.read_save()
+            save_handler.read_save()
 
             # Determines if it is a new hardware or not by looking at the evolution stage. If it is -1, the egg has
             # not been created yet, and the hardware sends you to the egg selection screen. If not, the hardware sends
             # you to the playground.
-            if file_handler.attributes['evolution_stage'] == -1:
+            if save_handler.attributes['evolution_stage'] == -1:
                 game_state = 'egg_select'
             else:
                 game_state = 'playground'
