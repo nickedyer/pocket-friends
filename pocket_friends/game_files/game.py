@@ -330,10 +330,7 @@ def game():
                 if submenu == 'main':
 
                     # Creates and holds the egg objects in a list.
-                    eggs = [SelectionEgg('red'), SelectionEgg('orange'), SelectionEgg('yellow'),
-                            SelectionEgg('green'),
-                            SelectionEgg('blue'), SelectionEgg('indigo'), SelectionEgg('violet'), SelectionEgg('white'),
-                            SelectionEgg('rainbow')]
+                    eggs = [SelectionEgg('red'), SelectionEgg('blue'), SelectionEgg('rainbow')]
 
                     # How many eggs per row should be displayed.
                     eggs_per_row = 3
