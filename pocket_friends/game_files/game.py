@@ -506,7 +506,13 @@ def game():
 
         elif game_state == 'playground':
             all_sprites.empty()
-            game_state = None  # Playground currently not implemented, send to error screen.
+
+            bloop = PlaygroundFriend(save_handler)
+            all_sprites.add(bloop)
+
+            while running and game_state == 'playground':
+                pre_handler()
+                draw()
 
         elif game_state == 'init':
             all_sprites.empty()
@@ -539,7 +545,7 @@ def game():
                 if submenu == 'main':
 
                     # Creates and holds the egg objects in a list.
-                    eggs = [SelectionEgg('red'), SelectionEgg('blue'), SelectionEgg('rainbow')]
+                    eggs = [SelectionEgg('dev_egg'), SelectionEgg('blue'), SelectionEgg('rainbow')]
 
                     # How many eggs per row should be displayed.
                     eggs_per_row = 3
@@ -671,8 +677,16 @@ def game():
                                     # Scroll up on the info screen.
                                     info.scroll_up()
                                 if event.key == Constants.buttons.get('a'):
-                                    # Go to an invalid hardware state if continuing.
-                                    game_state = None
+                                    # Write save file with new attributes
+                                    save_handler.attributes['bloop'] = egg.egg_color
+                                    save_handler.attributes['health'] = 10
+                                    save_handler.attributes['hunger'] = 10
+                                    save_handler.attributes['happiness'] = 10
+                                    save_handler.attributes['evolution_stage'] = 0
+                                    save_handler.write_save()
+
+                                    # Go to playground
+                                    game_state = 'playground'
                                 if event.key == Constants.buttons.get('b'):
                                     # Go back to the egg selection screen.
                                     submenu = 'main'
