@@ -566,7 +566,7 @@ def game():
                     all_sprites.add(egg)
 
                     # Info screen for the eggs.
-                    info = InfoText(small_font)
+                    info = InfoText(small_font, egg.description)
 
                     while running and game_state == 'egg_select' and submenu == 'egg_info':
 
