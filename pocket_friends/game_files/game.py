@@ -37,11 +37,15 @@ class SaveHandler:
     def __init__(self):
         # Attributes that are saved to a file to recover upon startup.
         self.attributes = {
+            'version': pocket_friends.__version__,
             'time_elapsed': 0,
+            'bloop': '',
             'age': 0,
             'health': 0,
             'hunger': 0,
             'happiness': 0,
+            'missed_care': 0,
+            'adult': 0,
             'evolution_stage': -1,
         }
 
@@ -442,7 +446,7 @@ def game():
             # Determines if it is a new hardware or not by looking at the evolution stage. If it is -1, the egg has
             # not been created yet, and the hardware sends you to the egg selection screen. If not, the hardware sends
             # you to the playground.
-            if save_handler.attributes['evolution_stage'] == -1:
+            if save_handler.attributes['bloop'] == '':
                 game_state = 'egg_select'
             else:
                 game_state = 'playground'
@@ -560,7 +564,7 @@ def game():
                                     sel_up()
                                 if event.key == Constants.buttons.get('a'):
                                     # Advance to the egg info screen for the selected egg.
-                                    submenu = 'egg_info'
+                                    submenu = 'bloop_info'
 
                         # Draws the cursor on screen.
                         cursor = pygame.image.load(script_dir + '/resources/images/clock_selector.png').convert_alpha()
@@ -570,7 +574,7 @@ def game():
 
                         draw()
 
-                elif submenu == 'egg_info':
+                elif submenu == 'bloop_info':
 
                     # Draw the selected egg on screen
                     egg = SelectionEgg(selected_color)
@@ -581,7 +585,7 @@ def game():
                     # Info screen for the eggs.
                     info = InfoText(small_font, egg.description)
 
-                    while running and game_state == 'egg_select' and submenu == 'egg_info':
+                    while running and game_state == 'egg_select' and submenu == 'bloop_info':
 
                         pre_handler()
 
