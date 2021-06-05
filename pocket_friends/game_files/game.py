@@ -25,7 +25,7 @@ except FileExistsError:
     pass
 
 
-class FileHandler:
+class SaveHandler:
     """
     Class that handles the hardware attributes and save files.
     """
@@ -81,7 +81,16 @@ class SelectionEgg(pygame.sprite.Sprite):
     def __init__(self, egg_color):
         pygame.sprite.Sprite.__init__(self)
 
+        self.egg_color = egg_color
+
+        # Loads the JSON file of the egg to read in data.
+        with open(script_dir + '/resources/data/egg_info/{0}.json'.format(egg_color), 'r') as save_file:
+            json_file = json.load(save_file)
+            save_file.close()
         image_directory = script_dir + '/resources/images/egg_images/{0}'.format(egg_color)
+
+        # Gets the description off the egg from the JSON file.
+        self.description = json_file.get('description')
 
         # Load the egg from the given color and get the bounding rectangle for the image.
         self.images = []
@@ -111,6 +120,113 @@ class SelectionEgg(pygame.sprite.Sprite):
         self.update_frame_dependent()
 
 
+class InfoText:
+    """
+    Class for drawing large amounts of text on the screen at a time
+    """
+
+    def __init__(self, font, text='Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam commodo tempor '
+                                  'aliquet. Suspendisse placerat accumsan neque, nec volutpat nunc porta ut.'):
+
+        self.font = font
+        self.text = []  # Text broken up into a list according to how it will fit on screen.
+        self.max_lines = 6  # Max number of lines to be shown on screen at a time.
+        self.offset = 0
+
+        # Arrow icons to indicate scrolling
+        self.up_arrow = pygame.image.load(script_dir + '/resources/images/gui/up_arrow.png').convert_alpha()
+        self.down_arrow = pygame.image.load(script_dir + '/resources/images/gui/down_arrow.png').convert_alpha()
+
+        raw_text = text  # Copy the text to a different variable to be cut up.
+
+        max_line_width = 71  # The maximum pixel width that drawn text can be.
+        cut_chars = '.,! '  # Characters that will be considered "cuts" aka when a line break can occur.
+
+        # Prevents freezing if the end of the string does not end in a cut character
+        # Will fix eventually more elegantly
+        if raw_text[-1:] not in cut_chars:
+            raw_text += ' '
+
+        # Calculating line breaks.
+        while len(raw_text) > 0:
+            index = 0
+            test_text = ''  # Chunk of text to pseudo-render and test the width of.
+
+            # Loops until the testing text has reached the size limit.
+            while True:
+
+                # Break if the current index is larger than the remaining text.
+                if index + 1 > len(raw_text):
+                    index -= 1
+                    break
+
+                # Add one character to the testing text from the raw text.
+                test_text += raw_text[index]
+                # Get the width of the pseudo-rendered text.
+                text_width = font.size(test_text)[0]
+
+                # Break if the text is larger than the defined max width.
+                if text_width > max_line_width:
+                    break
+                index += 1
+                pass
+
+            # Gets the chunk of text to be added to the list.
+            text_chunk = raw_text[0:index + 1]
+            # Determines if the chunk of text has any break characters.
+            has_breaks = any(cut_chars in text_chunk for cut_chars in cut_chars)
+
+            # If the text has break characters, start with the last character and go backwards until
+            # one has been found, decreasing the index each time.
+            if has_breaks:
+                while raw_text[index] not in cut_chars:
+                    index -= 1
+                text_chunk = raw_text[0:index + 1]
+            # If there are no break characters in the chunk, simply decrease the index by one and insert
+            # a dash at the end of the line to indicate the word continues.
+            else:
+                index -= 1
+                text_chunk = raw_text[0:index + 1]
+                text_chunk += '-'
+
+            # Append the text chunk to the list of text to draw.
+            self.text.append(text_chunk)
+
+            # Cut the text to repeat the process with the new cut string.
+            raw_text = raw_text[index + 1:]
+
+    def draw(self, surface):
+        """
+        Draws the text on a given surface.
+        :param surface: The surface for the text to be drawn on.
+        """
+
+        for i in range(min(len(self.text), self.max_lines)):
+            text = self.font.render(self.text[i + self.offset], False, (64, 64, 64))
+            surface.blit(text, (3, 25 + (i * 7)))
+
+        # Draw the arrows if there is more text than is on screen.
+        if self.offset != 0:
+            surface.blit(self.up_arrow, (36, 22))
+        if len(self.text) - (self.offset + 1) >= self.max_lines:
+            surface.blit(self.down_arrow, (36, 70))
+
+    def scroll_down(self):
+        """
+        Scrolls the text on the screen down.
+        """
+        # Ensures that the offset cannot be too big as to try to render non-existent lines.
+        if len(self.text) - (self.offset + 1) >= self.max_lines:
+            self.offset += 1
+
+    def scroll_up(self):
+        """
+        Scrolls the text on the screen up.
+        """
+        if self.offset > 0:  # Ensures a non-zero offset is not possible.
+            self.offset -= 1
+
+
 # Makes Pygame draw on the display of the RPi.
 os.environ["SDL_FBDEV"] = "/dev/fb1"
 
@@ -135,7 +251,7 @@ def game():
     # The hardware is normally rendered at 80 pixels and upscaled from there. If changing displays, change the
     # screen_size to reflect what the resolution of the new display is.
     rendered_size = 80
-    screen_size = 800
+    screen_size = 320
 
     window = pygame.display.set_mode((screen_size, screen_size))
     surface = pygame.Surface((rendered_size, rendered_size))
@@ -155,7 +271,7 @@ def game():
     # Default hardware state when the hardware first starts.
     game_state = 'title'
     running = True
-    file_handler = FileHandler()
+    save_handler = SaveHandler()
 
     # A group of all the sprites on screen. Used to update all sprites at onc
     all_sprites = pygame.sprite.Group()
@@ -308,12 +424,12 @@ def game():
             draw()
 
             # Read the save file.
-            file_handler.read_save()
+            save_handler.read_save()
 
             # Determines if it is a new hardware or not by looking at the evolution stage. If it is -1, the egg has
             # not been created yet, and the hardware sends you to the egg selection screen. If not, the hardware sends
             # you to the playground.
-            if file_handler.attributes['evolution_stage'] == -1:
+            if save_handler.attributes['evolution_stage'] == -1:
                 game_state = 'egg_select'
             else:
                 game_state = 'playground'
@@ -324,9 +440,12 @@ def game():
             submenu = 'main'
 
             selected = 0
+            selected_color = ""
 
             while running and game_state == 'egg_select':
+
                 all_sprites.empty()
+
                 if submenu == 'main':
 
                     # Creates and holds the egg objects in a list.
@@ -361,7 +480,6 @@ def game():
 
                         # Add the egg to the sprite list.
                         all_sprites.add(egg)
-                    selected = 0
 
                     def get_cursor_coords(selection):
                         """
@@ -435,13 +553,33 @@ def game():
                         cursor = pygame.image.load(script_dir + '/resources/images/clock_selector.png').convert_alpha()
                         surface.blit(cursor, get_cursor_coords(selected))
 
+                        selected_color = eggs[selected].egg_color
+
                         draw()
 
                 elif submenu == 'egg_info':
+
+                    # Draw the selected egg on screen
+                    egg = SelectionEgg(selected_color)
+                    egg.rect.x = 32
+                    egg.rect.y = 3
+                    all_sprites.add(egg)
+
+                    # Info screen for the eggs.
+                    info = InfoText(small_font, egg.description)
+
                     while running and game_state == 'egg_select' and submenu == 'egg_info':
+
                         pre_handler()
+
                         for event in pygame.event.get():
                             if event.type == pygame.KEYDOWN:
+                                if event.key == Constants.buttons.get('j_d'):
+                                    # Scroll down on the info screen.
+                                    info.scroll_down()
+                                if event.key == Constants.buttons.get('j_u'):
+                                    # Scroll up on the info screen.
+                                    info.scroll_up()
                                 if event.key == Constants.buttons.get('a'):
                                     # Go to an invalid hardware state if continuing.
                                     game_state = None
@@ -449,9 +587,8 @@ def game():
                                     # Go back to the egg selection screen.
                                     submenu = 'main'
 
-                        # Quick debugging for which egg is selected.
-                        selection_debug = small_font.render('Egg {0}'.format(selected), False, (64, 64, 64))
-                        surface.blit(selection_debug, (5, 35))
+                        # Draw the info screen.
+                        info.draw(surface)
 
                         draw()
 
@@ -462,7 +599,7 @@ def game():
             # Error screen. This appears when an invalid hardware state has been selected.
 
             all_sprites.empty()
-            frames_passed = 0  # Counter for frames, helps ensure the hardware isnt frozen.
+            frames_passed = 0  # Counter for frames, helps ensure the hardware isn't frozen.
 
             while running and game_state != 'title':
 
