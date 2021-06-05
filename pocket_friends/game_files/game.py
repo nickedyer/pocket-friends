@@ -132,6 +132,11 @@ class InfoText:
         self.text = []  # Text broken up into a list according to how it will fit on screen.
         self.max_lines = 6  # Max number of lines to be shown on screen at a time.
         self.offset = 0
+
+        # Arrow icons to indicate scrolling
+        self.up_arrow = pygame.image.load(script_dir + '/resources/images/gui/up_arrow.png').convert_alpha()
+        self.down_arrow = pygame.image.load(script_dir + '/resources/images/gui/down_arrow.png').convert_alpha()
+
         raw_text = text  # Copy the text to a different variable to be cut up.
 
         max_line_width = 71  # The maximum pixel width that drawn text can be.
@@ -198,7 +203,13 @@ class InfoText:
 
         for i in range(min(len(self.text), self.max_lines)):
             text = self.font.render(self.text[i + self.offset], False, (64, 64, 64))
-            surface.blit(text, (3, 22 + (i * 7)))
+            surface.blit(text, (3, 25 + (i * 7)))
+
+        # Draw the arrows if there is more text than is on screen.
+        if self.offset != 0:
+            surface.blit(self.up_arrow, (36, 22))
+        if len(self.text) - (self.offset + 1) >= self.max_lines:
+            surface.blit(self.down_arrow, (36, 70))
 
     def scroll_down(self):
         """
