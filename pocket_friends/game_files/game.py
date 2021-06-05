@@ -251,7 +251,7 @@ def game():
     # The hardware is normally rendered at 80 pixels and upscaled from there. If changing displays, change the
     # screen_size to reflect what the resolution of the new display is.
     rendered_size = 80
-    screen_size = 800
+    screen_size = 320
 
     window = pygame.display.set_mode((screen_size, screen_size))
     surface = pygame.Surface((rendered_size, rendered_size))
@@ -565,12 +565,21 @@ def game():
                     egg.rect.y = 3
                     all_sprites.add(egg)
 
+                    # Info screen for the eggs.
+                    info = InfoText(small_font)
+
                     while running and game_state == 'egg_select' and submenu == 'egg_info':
 
                         pre_handler()
 
                         for event in pygame.event.get():
                             if event.type == pygame.KEYDOWN:
+                                if event.key == Constants.buttons.get('j_d'):
+                                    # Scroll down on the info screen.
+                                    info.scroll_down()
+                                if event.key == Constants.buttons.get('j_u'):
+                                    # Scroll up on the info screen.
+                                    info.scroll_up()
                                 if event.key == Constants.buttons.get('a'):
                                     # Go to an invalid hardware state if continuing.
                                     game_state = None
@@ -578,9 +587,8 @@ def game():
                                     # Go back to the egg selection screen.
                                     submenu = 'main'
 
-                        # Quick debugging for which egg is selected.
-                        selection_debug = small_font.render(egg.description, False, (64, 64, 64))
-                        surface.blit(selection_debug, (5, 35))
+                        # Draw the info screen.
+                        info.draw(surface)
 
                         draw()
 
