@@ -13,6 +13,10 @@ from ..hardware.gpio_handler import Constants, GPIOHandler
 
 # FPS for the entire game to run at.
 game_fps = 16
+# FPS that animations run at
+animation_fps = 2
+# The resolution the game is rendered at.
+game_res = 80
 
 # Gets the directory of the script for importing and the save directory
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -101,12 +105,12 @@ class SelectionEgg(pygame.sprite.Sprite):
         self.index = 0
         self.image = self.images[self.index]
 
-        self.animation_frames = game_fps / len(self.images)
+        self.animation_frames = game_fps / animation_fps
         self.current_frame = 0
 
     def update_frame_dependent(self):
         """
-        Updates the image of Sprite every 6 frame (approximately every 0.1 second if frame rate is 60).
+        Takes the images loaded and animates it, spacing it out equally for the framerate.
         """
 
         self.current_frame += 1
@@ -116,7 +120,9 @@ class SelectionEgg(pygame.sprite.Sprite):
             self.image = self.images[self.index]
 
     def update(self):
-        """This is the method that's being called when 'all_sprites.update(dt)' is called."""
+        """
+        Updates the sprite object.
+        """
         self.update_frame_dependent()
 
 
@@ -139,7 +145,8 @@ class InfoText:
 
         raw_text = text  # Copy the text to a different variable to be cut up.
 
-        max_line_width = 71  # The maximum pixel width that drawn text can be.
+        margins = 4.5
+        max_line_width = game_res - (margins * 2)  # The maximum pixel width that drawn text can be.
         cut_chars = '.,! '  # Characters that will be considered "cuts" aka when a line break can occur.
 
         # Prevents freezing if the end of the string does not end in a cut character
@@ -200,16 +207,23 @@ class InfoText:
         Draws the text on a given surface.
         :param surface: The surface for the text to be drawn on.
         """
+        # Constants to help draw the text
+        line_separation = 7
+        left_margin = 3
+        top_margin = 25
+        bottom_margin = 10
 
+        # Draw the lines on the screen
         for i in range(min(len(self.text), self.max_lines)):
             text = self.font.render(self.text[i + self.offset], False, (64, 64, 64))
-            surface.blit(text, (3, 25 + (i * 7)))
+            surface.blit(text, (left_margin, top_margin + (i * line_separation)))
 
         # Draw the arrows if there is more text than is on screen.
         if self.offset != 0:
-            surface.blit(self.up_arrow, (36, 22))
+            surface.blit(self.up_arrow, ((game_res / 2) - (self.up_arrow.get_rect().width / 2), top_margin - 3))
         if len(self.text) - (self.offset + 1) >= self.max_lines:
-            surface.blit(self.down_arrow, (36, 70))
+            surface.blit(self.down_arrow,
+                         ((game_res / 2) - (self.down_arrow.get_rect().width / 2), game_res - bottom_margin))
 
     def scroll_down(self):
         """
@@ -250,11 +264,10 @@ def game():
 
     # The hardware is normally rendered at 80 pixels and upscaled from there. If changing displays, change the
     # screen_size to reflect what the resolution of the new display is.
-    rendered_size = 80
     screen_size = 320
 
     window = pygame.display.set_mode((screen_size, screen_size))
-    surface = pygame.Surface((rendered_size, rendered_size))
+    surface = pygame.Surface((game_res, game_res))
 
     # Only really useful for PCs. Does nothing on the Raspberry Pi.
     pygame.display.set_caption('Pocket Friends {0}'.format(pocket_friends.__version__))
@@ -616,7 +629,7 @@ def game():
 
                 # Draws the frame counter.
                 frame_counter = small_font.render('frames: {0}'.format(frames_passed), False, (64, 64, 64))
-                surface.blit(frame_counter, (1, 70))
+                surface.blit(frame_counter, (1, game_res - 10))
 
                 for event in pygame.event.get():
                     if event.type == pygame.KEYDOWN:
