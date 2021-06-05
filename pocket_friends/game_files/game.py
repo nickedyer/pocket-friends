@@ -77,8 +77,80 @@ class PlaygroundFriend(pygame.sprite.Sprite):
     Class for the sprite of the creature on the main playground.
     """
 
-    def __init__(self):
+    def __init__(self, save_handler):
         pygame.sprite.Sprite.__init__(self)
+
+        # All attributes of the bloops
+        self.bloop = save_handler.attributes['bloop']
+        self.age = save_handler.attributes['age']
+        self.health = save_handler.attributes['health']
+        self.hunger = save_handler.attributes['hunger']
+        self.happiness = save_handler.attributes['happiness']
+        self.evolution_stage = save_handler.attributes['evolution_stage']
+        self.missed_care = save_handler.attributes['missed_care']
+        self.adult = save_handler.attributes['adult']
+        self.direction = 0
+
+        # Draw the correct bloop depending on the stage
+        if self.evolution_stage == 0:
+            image_directory = script_dir + '/resources/images/bloops/{0}/egg_images'.format(self.bloop)
+        elif self.evolution_stage == 1:
+            image_directory = script_dir + '/resources/images/bloops/{0}/baby_images'.format(self.bloop)
+        elif self.evolution_stage == 2:
+            image_directory = script_dir + '/resources/images/bloops/{0}/teen_images'.format(self.bloop)
+        else:
+            # Draw the correct adult based on care
+            if self.adult == 0:
+                image_directory = script_dir + '/resources/images/bloops/{0}/adult_images/good'.format(self.bloop)
+            elif self.adult == 1:
+                image_directory = script_dir + '/resources/images/bloops/{0}/adult_images/neutral'.format(self.bloop)
+            else:
+                image_directory = script_dir + '/resources/images/bloops/{0}/adult_images/bad'.format(self.bloop)
+
+        self.images = []
+        for filename in os.listdir(image_directory):
+            self.images.append(pygame.image.load(image_directory + '/' + filename))
+
+        self.rect = self.images[0].get_rect()
+        self.rect.x = (game_res / 2) - (self.rect.width / 2)
+        self.rect.y = (game_res / 2) - (self.rect.height / 2)
+        self.index = 0
+        self.image = self.images[self.index]
+
+        self.animation_frames = game_fps / animation_fps
+        self.current_frame = 0
+
+    def update_frame_dependent(self):
+        """
+        Takes the images loaded and animates it, spacing it out equally for the framerate.
+        """
+
+        margins = 9
+        movement_amount = 4
+
+        self.current_frame += 1
+        if self.current_frame >= self.animation_frames:
+            self.current_frame = 0
+            self.index = (self.index + 1) % len(self.images)
+            self.image = self.images[self.index]
+
+            # Move the sprite so long as it is not in the egg stage
+            if self.evolution_stage == 0:
+                if self.rect.x < margins:
+                    self.direction = 1
+                elif self.rect.x > game_res - margins - self.rect.width:
+                    self.direction = 0
+
+                if self.direction == 0:
+                    self.rect.x -= movement_amount
+                else:
+                    self.rect.x += movement_amount
+
+    def update(self):
+        """
+        Updates the sprite object.
+        """
+        self.update_frame_dependent()
 
 
 class SelectionEgg(pygame.sprite.Sprite):
@@ -105,6 +177,7 @@ class SelectionEgg(pygame.sprite.Sprite):
         for filename in os.listdir(image_directory):
             self.images.append(pygame.image.load(image_directory + '/' + filename))
 
+        # Get the rectangle from the first image in the list
         self.rect = self.images[0].get_rect()
         self.index = 0
         self.image = self.images[self.index]
