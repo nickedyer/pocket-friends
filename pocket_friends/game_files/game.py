@@ -120,6 +120,87 @@ class SelectionEgg(pygame.sprite.Sprite):
         self.update_frame_dependent()
 
 
+class InfoText:
+    """
+    Class for drawing large amounts of text on the screen at a time
+    """
+
+    def __init__(self, font, text='Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam commodo tempor '
+                                  'aliquet. Suspendisse placerat accumsan neque, nec volutpat nunc porta ut.'):
+
+        self.font = font
+        self.text = []  # Text broken up into a list according to how it will fit on screen.
+        self.max_lines = 6  # Max number of lines to be shown on screen at a time.
+        self.offset = 0
+        raw_text = text  # Copy the text to a different variable to be cut up.
+
+        max_line_width = 71  # The maximum pixel width that drawn text can be.
+        cut_chars = '.,! '  # Characters that will be considered "cuts" aka when a line break can occur.
+
+        # Prevents freezing if the end of the string does not end in a cut character
+        # Will fix eventually more elegantly
+        if raw_text[-1:] not in cut_chars:
+            raw_text += ' '
+
+        # Calculating line breaks.
+        while len(raw_text) > 0:
+            index = 0
+            test_text = ''  # Chunk of text to pseudo-render and test the width of.
+
+            # Loops until the testing text has reached the size limit.
+            while True:
+
+                # Break if the current index is larger than the remaining text.
+                if index + 1 > len(raw_text):
+                    index -= 1
+                    break
+
+                # Add one character to the testing text from the raw text.
+                test_text += raw_text[index]
+                # Get the width of the pseudo-rendered text.
+                text_width = font.size(test_text)[0]
+
+                # Break if the text is larger than the defined max width.
+                if text_width > max_line_width:
+                    break
+                index += 1
+                pass
+
+            # Gets the chunk of text to be added to the list.
+            text_chunk = raw_text[0:index + 1]
+            # Determines if the chunk of text has any break characters.
+            has_breaks = any(cut_chars in text_chunk for cut_chars in cut_chars)
+
+            # If the text has break characters, start with the last character and go backwards until
+            # one has been found, decreasing the index each time.
+            if has_breaks:
+                while raw_text[index] not in cut_chars:
+                    index -= 1
+                text_chunk = raw_text[0:index + 1]
+            # If there are no break characters in the chunk, simply decrease the index by one and insert
+            # a dash at the end of the line to indicate the word continues.
+            else:
+                index -= 1
+                text_chunk = raw_text[0:index + 1]
+                text_chunk += '-'
+
+            # Append the text chunk to the list of text to draw.
+            self.text.append(text_chunk)
+
+            # Cut the text to repeat the process with the new cut string.
+            raw_text = raw_text[index + 1:]
+
+    def draw(self, surface):
+        """
+        Draws the text on a given surface.
+        :param surface: The surface for the text to be drawn on.
+        """
+
+        for i in range(min(len(self.text), self.max_lines)):
+            text = self.font.render(self.text[i + self.offset], False, (64, 64, 64))
+            surface.blit(text, (3, 22 + (i * 7)))
+
+
 # Makes Pygame draw on the display of the RPi.
 os.environ["SDL_FBDEV"] = "/dev/fb1"
 
