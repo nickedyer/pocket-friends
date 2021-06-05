@@ -200,6 +200,21 @@ class InfoText:
             text = self.font.render(self.text[i + self.offset], False, (64, 64, 64))
             surface.blit(text, (3, 22 + (i * 7)))
 
+    def scroll_down(self):
+        """
+        Scrolls the text on the screen down.
+        """
+        # Ensures that the offset cannot be too big as to try to render non-existent lines.
+        if len(self.text) - (self.offset + 1) >= self.max_lines:
+            self.offset += 1
+
+    def scroll_up(self):
+        """
+        Scrolls the text on the screen up.
+        """
+        if self.offset > 0:  # Ensures a non-zero offset is not possible.
+            self.offset -= 1
+
 
 # Makes Pygame draw on the display of the RPi.
 os.environ["SDL_FBDEV"] = "/dev/fb1"
