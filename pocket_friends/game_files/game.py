@@ -92,7 +92,7 @@ class PlaygroundFriend(pygame.sprite.Sprite):
         self.direction = 0
 
         # Draw the correct bloop depending on the stage
-        if self.evolution_stage == 0:
+        if self.evolution_stage != 0:
             image_directory = script_dir + '/resources/images/bloops/{0}/egg_images'.format(self.bloop)
         elif self.evolution_stage == 1:
             image_directory = script_dir + '/resources/images/bloops/{0}/baby_images'.format(self.bloop)
