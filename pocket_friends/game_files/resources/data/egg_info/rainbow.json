@@ -1,1 +1,5 @@
-{"description": "Rainbow egg description"}
+{
+  "description": "Rainbow egg description",
+  "contentness": 10,
+  "metabolism": 10
+}
