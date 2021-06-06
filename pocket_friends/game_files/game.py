@@ -92,7 +92,7 @@ class PlaygroundFriend(pygame.sprite.Sprite):
         self.direction = 0
 
         # Draw the correct bloop depending on the stage
-        if self.evolution_stage != 0:
+        if self.evolution_stage == 0:
             image_directory = script_dir + '/resources/images/bloops/{0}/egg_images'.format(self.bloop)
         elif self.evolution_stage == 1:
             image_directory = script_dir + '/resources/images/bloops/{0}/baby_images'.format(self.bloop)
@@ -120,7 +120,7 @@ class PlaygroundFriend(pygame.sprite.Sprite):
         self.animation_frames = game_fps / animation_fps
         self.current_frame = 0
 
-    def update_frame_dependent(self):
+    def update(self):
         """
         Takes the images loaded and animates it, spacing it out equally for the framerate.
         """
@@ -135,7 +135,7 @@ class PlaygroundFriend(pygame.sprite.Sprite):
             self.image = self.images[self.index]
 
             # Move the sprite so long as it is not in the egg stage
-            if self.evolution_stage == 0:
+            if self.evolution_stage != 0:
                 if self.rect.x < margins:
                     self.direction = 1
                 elif self.rect.x > game_res - margins - self.rect.width:
@@ -146,11 +146,7 @@ class PlaygroundFriend(pygame.sprite.Sprite):
                 else:
                     self.rect.x += movement_amount
 
-    def update(self):
-        """
-        Updates the sprite object.
-        """
-        self.update_frame_dependent()
+            self.age += 1
 
 
 class SelectionEgg(pygame.sprite.Sprite):
