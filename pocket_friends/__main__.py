@@ -1,6 +1,8 @@
 """
 Launch script for Pocket Friends.
 """
+import os
+from pathlib import Path
 import pygame
 import sys
 from pocket_friends.game_files.game import main as game_main
@@ -14,6 +16,10 @@ if __name__ == '__main__':
         for args in sys.argv:
             if args == '--dev':
                 enable_dev = True
+            if args == '--delete-save':
+                save_dir = os.path.join(Path.home(), '.pocket_friends')
+                os.remove(save_dir + '/save.json')
+
 
     if not enable_dev:
         game_main()
