@@ -29,6 +29,48 @@ except FileExistsError:
     pass
 
 
+class SpriteSheet:
+    """
+    Imports a sprite sheet as separate pygame images given an image file and a json file.
+    """
+
+    def __init__(self, sprite_sheet, texture_json):
+        # Load in whole sprite sheet as one image.
+        self.sprite_sheet = pygame.image.load(sprite_sheet).convert_alpha()
+        self.images = []
+
+        # Get the sprite sheet json file.
+        with open(texture_json, 'r') as json_file:
+            self.img_attrib = json.load(json_file)
+            json_file.close()
+
+        image_count = 0
+
+        # Get the sprite size as a tuple
+        sprite_size = self.img_attrib['width'], self.img_attrib['height']
+
+        # Iterate through every image location on the sprite sheet given the sprite size
+        for i in range(self.sprite_sheet.get_size()[1] // sprite_size[1]):
+            i *= sprite_size[1]
+            for j in range(self.sprite_sheet.get_size()[0] // sprite_size[0]):
+                j *= sprite_size[0]
+
+                # Create a new transparent surface
+                sprite = pygame.Surface(sprite_size, SRCALPHA)
+                # Blit the sprite onto the image
+                sprite.blit(self.sprite_sheet, (0, 0), (j, i, sprite_size[0], sprite_size[1]))
+                # Add the image to the list of images
+                self.images.append(sprite)
+
+                image_count += 1
+
+                # Break the loop if the specified number of frames has been reached.
+                if image_count >= self.img_attrib['frames']:
+                    break
+            if image_count >= self.img_attrib['frames']:
+                break
+
+
 class SaveHandler:
     """
     Class that handles the hardware attributes and save files.
