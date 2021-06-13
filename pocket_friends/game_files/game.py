@@ -69,7 +69,7 @@ class SpriteSheet:
                 break
 
 
-class SaveHandler:
+class DataHandler:
     """
     Class that handles the hardware attributes and save files.
     """
@@ -84,10 +84,12 @@ class SaveHandler:
             'health': 0,
             'hunger': 0,
             'happiness': 0,
+            'care_counter': 0,
             'missed_care': 0,
             'adult': 0,
             'evolution_stage': -1,
         }
+        self.frames_passed = 0
 
     def write_save(self):
         """
@@ -111,24 +113,32 @@ class SaveHandler:
         except FileNotFoundError:
             self.write_save()
 
+    def update(self):
+        """
+        Run the game logic.
+        """
+        self.frames_passed += 1
+        if self.frames_passed >= game_fps:
+            self.attributes['age'] += 1
+            print(self.attributes['age'])
+
+            if self.attributes['age'] % 10 == 0:
+                self.write_save()
+            self.frames_passed = 0
+
 
 class PlaygroundFriend(pygame.sprite.Sprite):
     """
     Class for the sprite of the creature on the main playground.
     """
 
-    def __init__(self, save_handler):
+    def __init__(self, data_handler):
         pygame.sprite.Sprite.__init__(self)
 
         # All attributes of the bloops
-        self.bloop = save_handler.attributes['bloop']
-        self.age = save_handler.attributes['age']
-        self.health = save_handler.attributes['health']
-        self.hunger = save_handler.attributes['hunger']
-        self.happiness = save_handler.attributes['happiness']
-        self.evolution_stage = save_handler.attributes['evolution_stage']
-        self.missed_care = save_handler.attributes['missed_care']
-        self.adult = save_handler.attributes['adult']
+        self.bloop = data_handler.attributes['bloop']
+        self.adult = data_handler.attributes['adult']
+        self.evolution_stage = data_handler.attributes['evolution_stage']
         self.direction = 0
 
         # Draw the correct bloop depending on the stage
@@ -189,8 +199,6 @@ class PlaygroundFriend(pygame.sprite.Sprite):
                     self.rect.x -= movement_amount
                 else:
                     self.rect.x += movement_amount
-
-            self.age += 1
 
 
 class SelectionEgg(pygame.sprite.Sprite):
@@ -400,7 +408,7 @@ def game():
     # Default hardware state when the hardware first starts.
     game_state = 'title'
     running = True
-    save_handler = SaveHandler()
+    data_handler = DataHandler()
 
     # A group of all the sprites on screen. Used to update all sprites at onc
     all_sprites = pygame.sprite.Group()
@@ -546,11 +554,12 @@ def game():
         elif game_state == 'playground':
             all_sprites.empty()
 
-            bloop = PlaygroundFriend(save_handler)
+            bloop = PlaygroundFriend(data_handler)
             all_sprites.add(bloop)
 
             while running and game_state == 'playground':
                 pre_handler()
+                data_handler.update()
                 draw()
 
         elif game_state == 'init':
@@ -559,12 +568,12 @@ def game():
             draw()
 
             # Read the save file.
-            save_handler.read_save()
+            data_handler.read_save()
 
             # Determines if it is a new hardware or not by looking at the evolution stage. If it is -1, the egg has
             # not been created yet, and the hardware sends you to the egg selection screen. If not, the hardware sends
             # you to the playground.
-            if save_handler.attributes['bloop'] == '':
+            if data_handler.attributes['bloop'] == '':
                 game_state = 'egg_select'
             else:
                 game_state = 'playground'
@@ -717,12 +726,12 @@ def game():
                                     info.scroll_up()
                                 if event.key == Constants.buttons.get('a'):
                                     # Write save file with new attributes
-                                    save_handler.attributes['bloop'] = egg.egg_color
-                                    save_handler.attributes['health'] = 10
-                                    save_handler.attributes['hunger'] = 10
-                                    save_handler.attributes['happiness'] = 10
-                                    save_handler.attributes['evolution_stage'] = 0
-                                    save_handler.write_save()
+                                    data_handler.attributes['bloop'] = egg.egg_color
+                                    data_handler.attributes['health'] = 10
+                                    data_handler.attributes['hunger'] = 10
+                                    data_handler.attributes['happiness'] = 10
+                                    data_handler.attributes['evolution_stage'] = 0
+                                    data_handler.write_save()
 
                                     # Go to playground
                                     game_state = 'playground'
