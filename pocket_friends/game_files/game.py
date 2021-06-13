@@ -218,6 +218,8 @@ class SelectionEgg(pygame.sprite.Sprite):
 
         # Gets the description off the egg from the JSON file.
         self.description = json_file.get('description')
+        self.contentness = json_file.get('contentness')
+        self.metabolism = json_file.get('metabolism')
 
         # Load the egg from the given color and get the bounding rectangle for the image.
         sprite_sheet = SpriteSheet(script_dir + '/resources/images/bloops/{0}/egg.png'.format(self.egg_color),
@@ -248,6 +250,50 @@ class SelectionEgg(pygame.sprite.Sprite):
         Updates the sprite object.
         """
         self.update_frame_dependent()
+
+
+class EggInfo:
+    """
+    Class to draw the contentness and metabolism value off the egg on the info screen.
+    """
+
+    def __init__(self, contentness, metabolism, location):
+        self.contentness = contentness
+        self.metabolism = metabolism
+        self.x = location[0]
+        self.y = location[1]
+
+        # Create a new surface to blit onto the other surface
+        self.surface = pygame.Surface((44, 15), SRCALPHA)
+
+        # Blit the two indicator icons on screen
+        smiley = pygame.image.load(script_dir + '/resources/images/gui/smiley.png').convert_alpha()
+        self.surface.blit(smiley, (0, 0))
+        apple = pygame.image.load(script_dir + '/resources/images/gui/apple.png').convert_alpha()
+        self.surface.blit(apple, (1, 9))
+
+        # Draw 5 stars. If the value of the contentness is less than the current star, make it a blank star.
+        for i in range(5):
+            if i < self.contentness:
+                star = pygame.image.load(script_dir + '/resources/images/gui/star.png').convert_alpha()
+            else:
+                star = pygame.image.load(script_dir + '/resources/images/gui/blank_star.png').convert_alpha()
+            self.surface.blit(star, (11 + (i * 6), 1))
+
+        # Draw 5 stars. If the value of the metabolism is less than the current star, make it a blank star.
+        for i in range(5):
+            if i < self.metabolism:
+                star = pygame.image.load(script_dir + '/resources/images/gui/star.png').convert_alpha()
+            else:
+                star = pygame.image.load(script_dir + '/resources/images/gui/blank_star.png').convert_alpha()
+            self.surface.blit(star, (11 + (i * 6), 10))
+
+    def draw(self, surface):
+        """
+        Draw the info icons on a given surface.
+        :param surface: the surface to draw the icons on.
+        """
+        surface.blit(self.surface, (self.x, self.y))
 
 
 class InfoText:
@@ -705,12 +751,13 @@ def game():
 
                     # Draw the selected egg on screen
                     egg = SelectionEgg(selected_color)
-                    egg.rect.x = 32
+                    egg.rect.x = 8
                     egg.rect.y = 3
                     all_sprites.add(egg)
 
                     # Info screen for the eggs.
-                    info = InfoText(small_font, egg.description)
+                    info_text = InfoText(small_font, egg.description)
+                    info_icons = EggInfo(egg.contentness, egg.metabolism, (32, 4))
 
                     while running and game_state == 'egg_select' and submenu == 'bloop_info':
 
@@ -720,10 +767,10 @@ def game():
                             if event.type == pygame.KEYDOWN:
                                 if event.key == Constants.buttons.get('j_d'):
                                     # Scroll down on the info screen.
-                                    info.scroll_down()
+                                    info_text.scroll_down()
                                 if event.key == Constants.buttons.get('j_u'):
                                     # Scroll up on the info screen.
-                                    info.scroll_up()
+                                    info_text.scroll_up()
                                 if event.key == Constants.buttons.get('a'):
                                     # Write save file with new attributes
                                     data_handler.attributes['bloop'] = egg.egg_color
@@ -740,7 +787,8 @@ def game():
                                     submenu = 'main'
 
                         # Draw the info screen.
-                        info.draw(surface)
+                        info_text.draw(surface)
+                        info_icons.draw(surface)
 
                         draw()
 
