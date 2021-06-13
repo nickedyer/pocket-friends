@@ -13,8 +13,6 @@ from ..hardware.gpio_handler import Constants, GPIOHandler
 
 # FPS for the entire game to run at.
 game_fps = 16
-# FPS that animations run at
-animation_fps = 2
 # The resolution the game is rendered at.
 game_res = 80
 
@@ -209,7 +207,6 @@ class SelectionEgg(pygame.sprite.Sprite):
         with open(script_dir + '/resources/data/bloop_info/{0}.json'.format(egg_color), 'r') as save_file:
             json_file = json.load(save_file)
             save_file.close()
-        image_directory = script_dir + '/resources/images/bloops/{0}/egg_images'.format(egg_color)
 
         # Gets the description off the egg from the JSON file.
         self.description = json_file.get('description')
