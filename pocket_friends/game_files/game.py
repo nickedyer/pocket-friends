@@ -135,23 +135,27 @@ class PlaygroundFriend(pygame.sprite.Sprite):
 
         # Draw the correct bloop depending on the stage
         if self.evolution_stage == 0:
-            image_directory = script_dir + '/resources/images/bloops/{0}/egg_images'.format(self.bloop)
+            sprite_sheet = SpriteSheet(script_dir + '/resources/images/bloops/{0}/egg.png'.format(self.bloop),
+                                       script_dir + '/resources/images/bloops/{0}/egg.json'.format(self.bloop))
         elif self.evolution_stage == 1:
-            image_directory = script_dir + '/resources/images/bloops/{0}/baby_images'.format(self.bloop)
+            sprite_sheet = SpriteSheet(script_dir + '/resources/images/bloops/{0}/baby.png'.format(self.bloop),
+                                       script_dir + '/resources/images/bloops/{0}/baby.json'.format(self.bloop))
         elif self.evolution_stage == 2:
-            image_directory = script_dir + '/resources/images/bloops/{0}/teen_images'.format(self.bloop)
+            sprite_sheet = SpriteSheet(script_dir + '/resources/images/bloops/{0}/teen.png'.format(self.bloop),
+                                       script_dir + '/resources/images/bloops/{0}/teen.json'.format(self.bloop))
         else:
             # Draw the correct adult based on care
             if self.adult == 0:
-                image_directory = script_dir + '/resources/images/bloops/{0}/adult_images/good'.format(self.bloop)
+                sprite_sheet = SpriteSheet(script_dir + '/resources/images/bloops/{0}/adult0.png'.format(self.bloop),
+                                           script_dir + '/resources/images/bloops/{0}/adult0.json'.format(self.bloop))
             elif self.adult == 1:
-                image_directory = script_dir + '/resources/images/bloops/{0}/adult_images/neutral'.format(self.bloop)
+                sprite_sheet = SpriteSheet(script_dir + '/resources/images/bloops/{0}/adult1.png'.format(self.bloop),
+                                           script_dir + '/resources/images/bloops/{0}/adult1.json'.format(self.bloop))
             else:
-                image_directory = script_dir + '/resources/images/bloops/{0}/adult_images/bad'.format(self.bloop)
+                sprite_sheet = SpriteSheet(script_dir + '/resources/images/bloops/{0}/adult2.png'.format(self.bloop),
+                                           script_dir + '/resources/images/bloops/{0}/adult2.json'.format(self.bloop))
 
-        self.images = []
-        for filename in os.listdir(image_directory):
-            self.images.append(pygame.image.load(image_directory + '/' + filename))
+        self.images = sprite_sheet.images
 
         self.rect = self.images[0].get_rect()
         self.rect.x = (game_res / 2) - (self.rect.width / 2)
@@ -159,7 +163,7 @@ class PlaygroundFriend(pygame.sprite.Sprite):
         self.index = 0
         self.image = self.images[self.index]
 
-        self.animation_frames = game_fps / animation_fps
+        self.animation_frames = 1
         self.current_frame = 0
 
     def update(self):
@@ -211,16 +215,16 @@ class SelectionEgg(pygame.sprite.Sprite):
         self.description = json_file.get('description')
 
         # Load the egg from the given color and get the bounding rectangle for the image.
-        self.images = []
-        for filename in os.listdir(image_directory):
-            self.images.append(pygame.image.load(image_directory + '/' + filename))
+        sprite_sheet = SpriteSheet(script_dir + '/resources/images/bloops/{0}/egg.png'.format(self.egg_color),
+                                   script_dir + '/resources/images/bloops/{0}/egg.json'.format(self.egg_color))
+        self.images = sprite_sheet.images
 
         # Get the rectangle from the first image in the list
         self.rect = self.images[0].get_rect()
         self.index = 0
         self.image = self.images[self.index]
 
-        self.animation_frames = game_fps / animation_fps
+        self.animation_frames = 1
         self.current_frame = 0
 
     def update_frame_dependent(self):
