@@ -419,8 +419,10 @@ os.environ["SDL_FBDEV"] = "/dev/fb1"
 try:
     importlib.util.find_spec('RPi.GPIO')
     import RPi.GPIO as GPIO
+    on_hardware = True
 except ImportError:
     import pocket_friends.development.FakeGPIO as GPIO
+    on_hardware = False
 
 
 def game():
@@ -513,7 +515,7 @@ def game():
         """
         nonlocal last_input_tick
         # Register a button click so long as the last button click happened no less than two frames ago
-        if pygame.time.get_ticks() - last_input_tick > clock.get_time() * 2:
+        if pygame.time.get_ticks() - last_input_tick > clock.get_time() * 2 or not on_hardware:
             pygame.event.post(pygame.event.Event(KEYDOWN, {'key': pressed_button}))
             pygame.event.post(pygame.event.Event(KEYUP, {'key': pressed_button}))
             log_button(pressed_button)
