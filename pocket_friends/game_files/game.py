@@ -402,6 +402,112 @@ class InfoText:
             self.offset -= 1
 
 
+class MenuIcon(pygame.sprite.Sprite):
+    """
+    Sprite for an icon on the main popup menu.
+    """
+
+    def __init__(self, icon):
+        pygame.sprite.Sprite.__init__(self)
+        self.icon = icon
+
+        # Load the sprite sheet from the icon name
+        sprite_sheet = SpriteSheet(script_dir + '/resources/images/gui/popup_menu/{0}.png'.format(self.icon),
+                                   script_dir + '/resources/images/gui/popup_menu/{0}.json'.format(self.icon))
+        self.images = sprite_sheet.images
+
+        # Get the rectangle from the first image in the list
+        self.rect = self.images[0].get_rect()
+        self.image = self.images[0]
+
+    def select(self):
+        """
+        Change the icon sprite to the selected icon.
+        """
+        self.image = self.images[1]
+
+    def deselect(self):
+        """
+        Change the icon sprite to the not selected icon.
+        """
+        self.image = self.images[0]
+
+
+class PopupMenu:
+    """
+    Class to create a popup menu that can be hidden and shown at will
+    """
+
+    def __init__(self, position):
+        # Background frame of the popup menu
+        self.frame = pygame.image.load(script_dir + '/resources/images/gui/popup_menu/frame.png').convert_alpha()
+
+        self.draw_menu = False  # Whether or not to draw the popup menu
+        self.menu_sprites = pygame.sprite.Group()  # Sprite group for the icons
+        self.selected = 0  # The currently selected icon
+
+        # The names of the icons to be drawn
+        icon_names = ['apple', 'dumbbell', 'stats', 'controller', 'bed']
+
+        self.icons = []
+        # Create an icon sprite for each name in the list and add it to the icon list
+        for i in icon_names:
+            self.icons.append(MenuIcon(i))
+
+        # Add each sprite in the icon list to the sprite group
+        for i in range(len(self.icons)):
+            icon = self.icons[i]
+            if i == self.selected:  # Make the default selected icon glow
+                icon.select()
+
+            # Calculate the position of the icon on screen
+            icon.rect.x = position[0] + 2 + (i * 14)
+            icon.rect.y = position[1] + self.frame.get_height() / 2 - icon.image.get_height() / 2
+
+            # Add the icon to the sprite group.
+            self.menu_sprites.add(icon)
+
+    def toggle(self):
+        """
+        Toggles the menu on or off.
+        """
+        self.draw_menu = not self.draw_menu
+
+    def next(self):
+        """
+        Changes the selection to the next icon (to the right.)
+        """
+        if self.draw_menu:  # Only change if the menu is on screen
+
+            self.icons[self.selected].deselect()  # Deselect the current icon
+            self.selected += 1  # Change selection to the next icon
+            if self.selected >= len(self.icons):  # Wrap around if new value is invalid
+                self.selected = 0
+            self.icons[self.selected].select()  # Select the newly selected icon
+
+    def prev(self):
+        """
+        Changes the selection to the previous icon (to the left.)
+        """
+        if self.draw_menu:  # Only change if the menu is on screen
+
+            self.icons[self.selected].deselect()  # Deselect the current icon
+            self.selected -= 1  # Change selection to the previous icon
+            if self.selected < 0:  # Wrap around if new value is invalid
+                self.selected = len(self.icons) - 1
+            self.icons[self.selected].select()  # Select the newly selected icon
+
+    def draw(self, surface):
+        """
+        Draw the menu onto a given surface
+        :param surface: the surface to draw the menu on.
+        """
+        # Draw the menu only if it is toggled on.
+        if self.draw_menu:
+            surface.blit(self.frame, (3, 3))
+            self.menu_sprites.draw(surface)
+
+
 # Makes Pygame draw on the display of the RPi.
 os.environ["SDL_FBDEV"] = "/dev/fb1"
 
