@@ -839,7 +839,8 @@ def game():
                                     submenu = 'bloop_info'
 
                         # Draws the cursor on screen.
-                        cursor = pygame.image.load(script_dir + '/resources/images/clock_selector.png').convert_alpha()
+                        cursor = pygame.image.load(
+                            script_dir + '/resources/images/gui/egg_selector.png').convert_alpha()
                         surface.blit(cursor, get_cursor_coords(selected))
 
                         selected_color = eggs[selected].egg_color
