@@ -42,6 +42,7 @@ class SpriteSheet:
             self.img_attrib = json.load(json_file)
             json_file.close()
 
+        # Count for how many images have been added in the image list
         image_count = 0
 
         # Get the sprite size as a tuple
@@ -89,6 +90,8 @@ class DataHandler:
             'adult': 0,
             'evolution_stage': '',
         }
+
+        # Frame counter
         self.frames_passed = 0
 
     def write_save(self):
@@ -118,12 +121,17 @@ class DataHandler:
         Run the game logic.
         """
         self.frames_passed += 1
+        # Run logic of the game every second.
         if self.frames_passed >= game_fps:
-            self.attributes['age'] += 1
-            print(self.attributes['age'])
 
+            # Add one to the age of the bloop.
+            self.attributes['age'] += 1
+
+            # Save the data when the age of the bloop is a multiple of 10.
             if self.attributes['age'] % 10 == 0:
                 self.write_save()
+
+            # Reset frame counter
             self.frames_passed = 0
 
 
@@ -162,7 +170,7 @@ class PlaygroundFriend(pygame.sprite.Sprite):
         self.index = 0
         self.image = self.images[self.index]
 
-        self.animation_frames = 1
+        self.movement_frames = game_fps / 2  # How many frames pass before the bloop moves
         self.current_frame = 0
 
     def update(self):
@@ -170,26 +178,33 @@ class PlaygroundFriend(pygame.sprite.Sprite):
         Takes the images loaded and animates it, spacing it out equally for the framerate.
         """
 
-        margins = 9
-        movement_amount = 4
+        margins = 9  # Margins for how far the bloop can move from the left and the right of the screen
+        movement_amount = 2  # Pixels that the bloop moves in one movement
 
         self.current_frame += 1
-        if self.current_frame >= self.animation_frames:
-            self.current_frame = 0
-            self.index = (self.index + 1) % len(self.images)
-            self.image = self.images[self.index]
 
-            # Move the sprite so long as it is not in the egg stage
-            if self.evolution_stage != 0:
+        # Check to see if the number of movement frames has passed
+        if self.current_frame >= self.movement_frames:
+            self.current_frame = 0
+
+            # Move only if the bloop is not in the egg stage
+            if self.evolution_stage != 'egg':
+
+                # Change direction if the bloop has reached either edge of the screen
                 if self.rect.x < margins:
                     self.direction = 1
                 elif self.rect.x > game_res - margins - self.rect.width:
                     self.direction = 0
 
+                # Move according to the direction.
                 if self.direction == 0:
                     self.rect.x -= movement_amount
                 else:
                     self.rect.x += movement_amount
+
+        # Animate the bloop
+        self.index = (self.index + 1) % len(self.images)
+        self.image = self.images[self.index]
 
 
 class SelectionEgg(pygame.sprite.Sprite):
@@ -222,25 +237,13 @@ class SelectionEgg(pygame.sprite.Sprite):
         self.index = 0
         self.image = self.images[self.index]
 
-        self.animation_frames = 1
-        self.current_frame = 0
-
-    def update_frame_dependent(self):
-        """
-        Takes the images loaded and animates it, spacing it out equally for the framerate.
-        """
-
-        self.current_frame += 1
-        if self.current_frame >= self.animation_frames:
-            self.current_frame = 0
-            self.index = (self.index + 1) % len(self.images)
-            self.image = self.images[self.index]
-
     def update(self):
         """
         Updates the sprite object.
         """
-        self.update_frame_dependent()
+        # Animate the sprite
+        self.index = (self.index + 1) % len(self.images)
+        self.image = self.images[self.index]
 
 
 class EggInfo:
@@ -284,6 +287,7 @@ class EggInfo:
         Draw the info icons on a given surface.
         :param surface: the surface to draw the icons on.
         """
+        # Blit the info onto the given surface.
         surface.blit(self.surface, (self.x, self.y))
 
 
