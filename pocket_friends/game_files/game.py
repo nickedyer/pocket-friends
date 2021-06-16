@@ -173,6 +173,12 @@ class PlaygroundFriend(pygame.sprite.Sprite):
         self.movement_frames = game_fps / 2  # How many frames pass before the bloop moves
         self.current_frame = 0
 
+    def pet(self):
+        """
+        Pet the bloop!
+        """
+        pass
+
     def update(self):
         """
         Takes the images loaded and animates it, spacing it out equally for the framerate.
@@ -701,15 +707,50 @@ def game():
             game_state = 'init'
 
         elif game_state == 'playground':
-            all_sprites.empty()
 
-            bloop = PlaygroundFriend(data_handler)
-            all_sprites.add(bloop)
+            # Submenu used within the playground.
+            submenu = 'main'
 
             while running and game_state == 'playground':
-                pre_handler()
-                data_handler.update()
-                draw()
+
+                all_sprites.empty()
+
+                if submenu == 'main':
+
+                    # Create the bloop and the menu
+                    bloop = PlaygroundFriend(data_handler)
+                    all_sprites.add(bloop)
+                    popup_menu = PopupMenu((3, 3))
+
+                    while running and game_state == 'playground' and submenu == 'main':
+                        pre_handler()
+                        data_handler.update()
+
+                        for event in pygame.event.get():
+                            if event.type == pygame.KEYDOWN:
+                                if event.key == Constants.buttons.get('j_r'):
+                                    # Move selection to the next item
+                                    popup_menu.next()
+                                if event.key == Constants.buttons.get('j_l'):
+                                    # Move selection to the previous item
+                                    popup_menu.prev()
+                                if event.key == Constants.buttons.get('a'):
+                                    # Change submenu to the menu the icon points to
+                                    if popup_menu.draw_menu:
+                                        submenu = popup_menu.icons[popup_menu.selected].icon
+                                    else: # Pet the bloop otherwise
+                                        bloop.pet()
+                                if event.key == Constants.buttons.get('b'):
+                                    # Toggle the popup menu on or off
+                                    popup_menu.toggle()
+
+                        # Draw the popup menu if toggled on
+                        popup_menu.draw(surface)
+
+                        draw()
+
+                else:  # Go to the error state if an invalid state is set.
+                    game_state = None
 
         elif game_state == 'init':
             all_sprites.empty()
