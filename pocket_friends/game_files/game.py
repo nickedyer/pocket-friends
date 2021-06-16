@@ -87,7 +87,7 @@ class DataHandler:
             'care_counter': 0,
             'missed_care': 0,
             'adult': 0,
-            'evolution_stage': -1,
+            'evolution_stage': '',
         }
         self.frames_passed = 0
 
@@ -141,33 +141,24 @@ class PlaygroundFriend(pygame.sprite.Sprite):
         self.evolution_stage = data_handler.attributes['evolution_stage']
         self.direction = 0
 
-        # Draw the correct bloop depending on the stage
-        if self.evolution_stage == 0:
-            sprite_sheet = SpriteSheet(script_dir + '/resources/images/bloops/{0}/egg.png'.format(self.bloop),
-                                       script_dir + '/resources/images/bloops/{0}/egg.json'.format(self.bloop))
-        elif self.evolution_stage == 1:
-            sprite_sheet = SpriteSheet(script_dir + '/resources/images/bloops/{0}/baby.png'.format(self.bloop),
-                                       script_dir + '/resources/images/bloops/{0}/baby.json'.format(self.bloop))
-        elif self.evolution_stage == 2:
-            sprite_sheet = SpriteSheet(script_dir + '/resources/images/bloops/{0}/teen.png'.format(self.bloop),
-                                       script_dir + '/resources/images/bloops/{0}/teen.json'.format(self.bloop))
+        if self.evolution_stage == 'adult':
+            image = self.evolution_stage + self.adult
         else:
-            # Draw the correct adult based on care
-            if self.adult == 0:
-                sprite_sheet = SpriteSheet(script_dir + '/resources/images/bloops/{0}/adult0.png'.format(self.bloop),
-                                           script_dir + '/resources/images/bloops/{0}/adult0.json'.format(self.bloop))
-            elif self.adult == 1:
-                sprite_sheet = SpriteSheet(script_dir + '/resources/images/bloops/{0}/adult1.png'.format(self.bloop),
-                                           script_dir + '/resources/images/bloops/{0}/adult1.json'.format(self.bloop))
-            else:
-                sprite_sheet = SpriteSheet(script_dir + '/resources/images/bloops/{0}/adult2.png'.format(self.bloop),
-                                           script_dir + '/resources/images/bloops/{0}/adult2.json'.format(self.bloop))
+            image = self.evolution_stage
 
+        # Draw the correct bloop depending on the stage
+        sprite_sheet = SpriteSheet(script_dir + '/resources/images/bloops/{0}/{1}.png'.format(self.bloop, image),
+                                   script_dir + '/resources/images/bloops/{0}/{1}.json'.format(self.bloop, image))
+
+        # Load the images from the sprite sheet
         self.images = sprite_sheet.images
 
+        # Put the egg in the middle of the screen.
         self.rect = self.images[0].get_rect()
         self.rect.x = (game_res / 2) - (self.rect.width / 2)
         self.rect.y = (game_res / 2) - (self.rect.height / 2)
+
+        # Start animation at the beginning of the sprite sheet.
         self.index = 0
         self.image = self.images[self.index]
 
@@ -779,7 +770,7 @@ def game():
                                     data_handler.attributes['health'] = 10
                                     data_handler.attributes['hunger'] = 10
                                     data_handler.attributes['happiness'] = 10
-                                    data_handler.attributes['evolution_stage'] = 0
+                                    data_handler.attributes['evolution_stage'] = 'egg'
                                     data_handler.write_save()
 
                                     # Go to playground
