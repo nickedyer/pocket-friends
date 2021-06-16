@@ -1,5 +1,5 @@
 """
-Main file for the entire hardware. Controls everything except for GPIO input.
+Main file for the entire game. Controls everything except for GPIO input.
 """
 from collections import deque
 import importlib.util
@@ -526,24 +526,26 @@ os.environ["SDL_FBDEV"] = "/dev/fb1"
 try:
     importlib.util.find_spec('RPi.GPIO')
     import RPi.GPIO as GPIO
+
     on_hardware = True
 except ImportError:
     import pocket_friends.development.FakeGPIO as GPIO
+
     on_hardware = False
 
 
 def game():
     """
-    Starts the hardware.
+    Starts the game.
     """
     pygame.init()
 
     # Hide the cursor for the Pi display.
     pygame.mouse.set_visible(False)
 
-    # The hardware is normally rendered at 80 pixels and upscaled from there. If changing displays, change the
+    # The game is normally rendered at 80 pixels and upscaled from there. If changing displays, change the
     # screen_size to reflect what the resolution of the new display is.
-    screen_size = 320
+    screen_size = 800
 
     window = pygame.display.set_mode((screen_size, screen_size))
     surface = pygame.Surface((game_res, game_res))
@@ -557,10 +559,10 @@ def game():
 
     clock = pygame.time.Clock()
 
-    # Font used for small text in the hardware. Bigger text is usually image files.
+    # Font used for small text in the game. Bigger text is usually image files.
     small_font = pygame.font.Font(script_dir + '/resources/fonts/5Pts5.ttf', 10)
 
-    # Default hardware state when the hardware first starts.
+    # Default game state when the game first starts.
     game_state = 'title'
     running = True
     data_handler = DataHandler()
@@ -571,7 +573,7 @@ def game():
     # Start the GPIO handler to take in buttons from the RPi HAT.
     GPIOHandler.setup()
 
-    # Dev code used to exit the hardware. Default Down, Down, Up, Up, Down, Down, Up, Up, A, A, B
+    # Dev code used to exit the game. Default Down, Down, Up, Up, Down, Down, Up, Up, A, A, B
     dev_code = deque()
     for button in [Constants.buttons.get('j_d'), Constants.buttons.get('j_d'), Constants.buttons.get('j_u'),
                    Constants.buttons.get('j_u'), Constants.buttons.get('j_d'), Constants.buttons.get('j_d'),
@@ -601,7 +603,7 @@ def game():
 
     def draw_bg():
         """
-        Draws the main hardware background image onto a given surface.
+        Draws the main game background image onto a given surface.
         """
         bg_image = pygame.image.load(script_dir + '/resources/images/bg.png').convert()
         surface.blit(bg_image, (0, 0))
@@ -650,7 +652,7 @@ def game():
 
     def keyboard_handler():
         """
-        Simulates key presses to GPIO button presses. Also handles quitting the hardware.
+        Simulates key presses to GPIO button presses. Also handles quitting the game.
         """
         nonlocal running
 
@@ -678,10 +680,10 @@ def game():
 
     def pre_handler():
         """
-        Runs at the beginning of each loop, handles drawing the background, controlling hardware speed, and
+        Runs at the beginning of each loop, handles drawing the background, controlling game speed, and
         controlling the GPIO button inputs and keyboard handler
         """
-        # Regulate the speed of the hardware.
+        # Regulate the speed of the game.
         clock.tick(game_fps)
 
         # Handle all inputs for both debugging and real GPIO button presses.
@@ -702,7 +704,7 @@ def game():
             surface.blit(title_image, (0, 0))
             draw()
 
-            # Show the title for 1 second then move on to the initialization phase of the hardware.
+            # Show the title for 1 second then move on to the initialization phase of the game.
             pygame.time.wait(1000)
             game_state = 'init'
 
@@ -738,7 +740,7 @@ def game():
                                     # Change submenu to the menu the icon points to
                                     if popup_menu.draw_menu:
                                         submenu = popup_menu.icons[popup_menu.selected].icon
-                                    else: # Pet the bloop otherwise
+                                    else:  # Pet the bloop otherwise
                                         bloop.pet()
                                 if event.key == Constants.buttons.get('b'):
                                     # Toggle the popup menu on or off
@@ -760,8 +762,8 @@ def game():
             # Read the save file.
             data_handler.read_save()
 
-            # Determines if it is a new hardware or not by looking at the evolution stage. If it is -1, the egg has
-            # not been created yet, and the hardware sends you to the egg selection screen. If not, the hardware sends
+            # Determines if it is a new game or not by looking at the evolution stage. If it is -1, the egg has
+            # not been created yet, and the game sends you to the egg selection screen. If not, the game sends
             # you to the playground.
             if data_handler.attributes['bloop'] == '':
                 game_state = 'egg_select'
@@ -941,10 +943,10 @@ def game():
                     game_state = None
 
         else:
-            # Error screen. This appears when an invalid hardware state has been selected.
+            # Error screen. This appears when an invalid game state has been selected.
 
             all_sprites.empty()
-            frames_passed = 0  # Counter for frames, helps ensure the hardware isn't frozen.
+            frames_passed = 0  # Counter for frames, helps ensure the game isn't frozen.
 
             while running and game_state != 'title':
 
@@ -974,7 +976,7 @@ def game():
 
 def main():
     """
-    Calls the hardware() function to start the hardware.
+    Calls the game() function to start the game.
     """
     game()
 
