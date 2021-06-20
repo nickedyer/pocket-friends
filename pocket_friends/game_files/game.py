@@ -545,7 +545,7 @@ def game():
 
     # The game is normally rendered at 80 pixels and upscaled from there. If changing displays, change the
     # screen_size to reflect what the resolution of the new display is.
-    screen_size = 800
+    screen_size = 320
 
     window = pygame.display.set_mode((screen_size, screen_size))
     surface = pygame.Surface((game_res, game_res))
