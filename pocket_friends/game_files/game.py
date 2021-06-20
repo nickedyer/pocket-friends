@@ -471,7 +471,7 @@ class PopupMenu:
                 icon.select()
 
             # Calculate the position of the icon on screen
-            icon.rect.x = position[0] + 2 + (i * 14)
+            icon.rect.x = 10 + (i * 15) - (icon.image.get_width() / 2)
             icon.rect.y = position[1] + self.frame.get_height() / 2 - icon.image.get_height() / 2
 
             # Add the icon to the sprite group.
