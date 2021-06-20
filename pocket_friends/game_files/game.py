@@ -1,5 +1,5 @@
 """
-Main file for the entire hardware. Controls everything except for GPIO input.
+Main file for the entire game. Controls everything except for GPIO input.
 """
 from collections import deque
 import importlib.util
@@ -13,6 +13,8 @@ from ..hardware.gpio_handler import Constants, GPIOHandler
 
 # FPS for the entire game to run at.
 game_fps = 16
+# The resolution the game is rendered at.
+game_res = 80
 
 # Gets the directory of the script for importing and the save directory
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -25,7 +27,50 @@ except FileExistsError:
     pass
 
 
-class SaveHandler:
+class SpriteSheet:
+    """
+    Imports a sprite sheet as separate pygame images given an image file and a json file.
+    """
+
+    def __init__(self, sprite_sheet, texture_json):
+        # Load in whole sprite sheet as one image.
+        self.sprite_sheet = pygame.image.load(sprite_sheet).convert_alpha()
+        self.images = []
+
+        # Get the sprite sheet json file.
+        with open(texture_json, 'r') as json_file:
+            self.img_attrib = json.load(json_file)
+            json_file.close()
+
+        # Count for how many images have been added in the image list
+        image_count = 0
+
+        # Get the sprite size as a tuple
+        sprite_size = self.img_attrib['width'], self.img_attrib['height']
+
+        # Iterate through every image location on the sprite sheet given the sprite size
+        for i in range(self.sprite_sheet.get_size()[1] // sprite_size[1]):
+            i *= sprite_size[1]
+            for j in range(self.sprite_sheet.get_size()[0] // sprite_size[0]):
+                j *= sprite_size[0]
+
+                # Create a new transparent surface
+                sprite = pygame.Surface(sprite_size, SRCALPHA)
+                # Blit the sprite onto the image
+                sprite.blit(self.sprite_sheet, (0, 0), (j, i, sprite_size[0], sprite_size[1]))
+                # Add the image to the list of images
+                self.images.append(sprite)
+
+                image_count += 1
+
+                # Break the loop if the specified number of frames has been reached.
+                if image_count >= self.img_attrib['frames']:
+                    break
+            if image_count >= self.img_attrib['frames']:
+                break
+
+
+class DataHandler:
     """
     Class that handles the hardware attributes and save files.
     """
@@ -33,13 +78,21 @@ class SaveHandler:
     def __init__(self):
         # Attributes that are saved to a file to recover upon startup.
         self.attributes = {
+            'version': pocket_friends.__version__,
             'time_elapsed': 0,
+            'bloop': '',
             'age': 0,
             'health': 0,
             'hunger': 0,
             'happiness': 0,
-            'evolution_stage': -1,
+            'care_counter': 0,
+            'missed_care': 0,
+            'adult': 0,
+            'evolution_stage': '',
         }
+
+        # Frame counter
+        self.frames_passed = 0
 
     def write_save(self):
         """
@@ -63,14 +116,101 @@ class SaveHandler:
         except FileNotFoundError:
             self.write_save()
 
+    def update(self):
+        """
+        Run the game logic.
+        """
+        self.frames_passed += 1
+        # Run logic of the game every second.
+        if self.frames_passed >= game_fps:
+
+            # Add one to the age of the bloop.
+            self.attributes['age'] += 1
+
+            # Save the data when the age of the bloop is a multiple of 10.
+            if self.attributes['age'] % 10 == 0:
+                self.write_save()
+
+            # Reset frame counter
+            self.frames_passed = 0
+
 
 class PlaygroundFriend(pygame.sprite.Sprite):
     """
     Class for the sprite of the creature on the main playground.
     """
 
-    def __init__(self):
+    def __init__(self, data_handler):
         pygame.sprite.Sprite.__init__(self)
+
+        # All attributes of the bloops
+        self.bloop = data_handler.attributes['bloop']
+        self.adult = data_handler.attributes['adult']
+        self.evolution_stage = data_handler.attributes['evolution_stage']
+        self.direction = 0
+
+        if self.evolution_stage == 'adult':
+            image = self.evolution_stage + self.adult
+        else:
+            image = self.evolution_stage
+
+        # Draw the correct bloop depending on the stage
+        sprite_sheet = SpriteSheet(script_dir + '/resources/images/bloops/{0}/{1}.png'.format(self.bloop, image),
+                                   script_dir + '/resources/images/bloops/{0}/{1}.json'.format(self.bloop, image))
+
+        # Load the images from the sprite sheet
+        self.images = sprite_sheet.images
+
+        # Put the egg in the middle of the screen.
+        self.rect = self.images[0].get_rect()
+        self.rect.x = (game_res / 2) - (self.rect.width / 2)
+        self.rect.y = (game_res / 2) - (self.rect.height / 2)
+
+        # Start animation at the beginning of the sprite sheet.
+        self.index = 0
+        self.image = self.images[self.index]
+
+        self.movement_frames = game_fps / 2  # How many frames pass before the bloop moves
+        self.current_frame = 0
+
+    def pet(self):
+        """
+        Pet the bloop!
+        """
+        pass
+
+    def update(self):
+        """
+        Takes the images loaded and animates it, spacing it out equally for the framerate.
+        """
+
+        margins = 9  # Margins for how far the bloop can move from the left and the right of the screen
+        movement_amount = 2  # Pixels that the bloop moves in one movement
+
+        self.current_frame += 1
+
+        # Check to see if the number of movement frames has passed
+        if self.current_frame >= self.movement_frames:
+            self.current_frame = 0
+
+            # Move only if the bloop is not in the egg stage
+            if self.evolution_stage != 'egg':
+
+                # Change direction if the bloop has reached either edge of the screen
+                if self.rect.x < margins:
+                    self.direction = 1
+                elif self.rect.x > game_res - margins - self.rect.width:
+                    self.direction = 0
+
+                # Move according to the direction.
+                if self.direction == 0:
+                    self.rect.x -= movement_amount
+                else:
+                    self.rect.x += movement_amount
+
+        # Animate the bloop
+        self.index = (self.index + 1) % len(self.images)
+        self.image = self.images[self.index]
 
 
 class SelectionEgg(pygame.sprite.Sprite):
@@ -84,40 +224,77 @@ class SelectionEgg(pygame.sprite.Sprite):
         self.egg_color = egg_color
 
         # Loads the JSON file of the egg to read in data.
-        with open(script_dir + '/resources/data/egg_info/{0}.json'.format(egg_color), 'r') as save_file:
+        with open(script_dir + '/resources/data/bloop_info/{0}.json'.format(egg_color), 'r') as save_file:
             json_file = json.load(save_file)
             save_file.close()
-        image_directory = script_dir + '/resources/images/egg_images/{0}'.format(egg_color)
 
         # Gets the description off the egg from the JSON file.
         self.description = json_file.get('description')
+        self.contentedness = json_file.get('contentedness')
+        self.metabolism = json_file.get('metabolism')
 
         # Load the egg from the given color and get the bounding rectangle for the image.
-        self.images = []
-        for filename in os.listdir(image_directory):
-            self.images.append(pygame.image.load(image_directory + '/' + filename))
+        sprite_sheet = SpriteSheet(script_dir + '/resources/images/bloops/{0}/egg.png'.format(self.egg_color),
+                                   script_dir + '/resources/images/bloops/{0}/egg.json'.format(self.egg_color))
+        self.images = sprite_sheet.images
 
+        # Get the rectangle from the first image in the list
         self.rect = self.images[0].get_rect()
         self.index = 0
         self.image = self.images[self.index]
 
-        self.animation_frames = game_fps / len(self.images)
-        self.current_frame = 0
-
-    def update_frame_dependent(self):
-        """
-        Updates the image of Sprite every 6 frame (approximately every 0.1 second if frame rate is 60).
-        """
-
-        self.current_frame += 1
-        if self.current_frame >= self.animation_frames:
-            self.current_frame = 0
-            self.index = (self.index + 1) % len(self.images)
-            self.image = self.images[self.index]
-
     def update(self):
-        """This is the method that's being called when 'all_sprites.update(dt)' is called."""
-        self.update_frame_dependent()
+        """
+        Updates the sprite object.
+        """
+        # Animate the sprite
+        self.index = (self.index + 1) % len(self.images)
+        self.image = self.images[self.index]
+
+
+class EggInfo:
+    """
+    Class to draw the contentedness and metabolism value off the egg on the info screen.
+    """
+
+    def __init__(self, contentedness, metabolism, location):
+        self.contentedness = contentedness
+        self.metabolism = metabolism
+        self.x = location[0]
+        self.y = location[1]
+
+        # Create a new surface to blit onto the other surface
+        self.surface = pygame.Surface((44, 15), SRCALPHA)
+
+        # Blit the two indicator icons on screen
+        smiley = pygame.image.load(script_dir + '/resources/images/gui/smiley.png').convert_alpha()
+        self.surface.blit(smiley, (0, 0))
+        apple = pygame.image.load(script_dir + '/resources/images/gui/apple.png').convert_alpha()
+        self.surface.blit(apple, (1, 9))
+
+        # Draw 5 stars. If the value of the contentedness is less than the current star, make it a blank star.
+        for i in range(5):
+            if i < self.contentedness:
+                star = pygame.image.load(script_dir + '/resources/images/gui/star.png').convert_alpha()
+            else:
+                star = pygame.image.load(script_dir + '/resources/images/gui/blank_star.png').convert_alpha()
+            self.surface.blit(star, (11 + (i * 6), 1))
+
+        # Draw 5 stars. If the value of the metabolism is less than the current star, make it a blank star.
+        for i in range(5):
+            if i < self.metabolism:
+                star = pygame.image.load(script_dir + '/resources/images/gui/star.png').convert_alpha()
+            else:
+                star = pygame.image.load(script_dir + '/resources/images/gui/blank_star.png').convert_alpha()
+            self.surface.blit(star, (11 + (i * 6), 10))
+
+    def draw(self, surface):
+        """
+        Draw the info icons on a given surface.
+        :param surface: the surface to draw the icons on.
+        """
+        # Blit the info onto the given surface.
+        surface.blit(self.surface, (self.x, self.y))
 
 
 class InfoText:
@@ -139,7 +316,8 @@ class InfoText:
 
         raw_text = text  # Copy the text to a different variable to be cut up.
 
-        max_line_width = 71  # The maximum pixel width that drawn text can be.
+        margins = 4.5
+        max_line_width = game_res - (margins * 2)  # The maximum pixel width that drawn text can be.
         cut_chars = '.,! '  # Characters that will be considered "cuts" aka when a line break can occur.
 
         # Prevents freezing if the end of the string does not end in a cut character
@@ -200,16 +378,23 @@ class InfoText:
         Draws the text on a given surface.
         :param surface: The surface for the text to be drawn on.
         """
+        # Constants to help draw the text
+        line_separation = 7
+        left_margin = 3
+        top_margin = 25
+        bottom_margin = 10
 
+        # Draw the lines on the screen
         for i in range(min(len(self.text), self.max_lines)):
             text = self.font.render(self.text[i + self.offset], False, (64, 64, 64))
-            surface.blit(text, (3, 25 + (i * 7)))
+            surface.blit(text, (left_margin, top_margin + (i * line_separation)))
 
         # Draw the arrows if there is more text than is on screen.
         if self.offset != 0:
-            surface.blit(self.up_arrow, (36, 22))
+            surface.blit(self.up_arrow, ((game_res / 2) - (self.up_arrow.get_rect().width / 2), top_margin - 3))
         if len(self.text) - (self.offset + 1) >= self.max_lines:
-            surface.blit(self.down_arrow, (36, 70))
+            surface.blit(self.down_arrow,
+                         ((game_res / 2) - (self.down_arrow.get_rect().width / 2), game_res - bottom_margin))
 
     def scroll_down(self):
         """
@@ -227,6 +412,112 @@ class InfoText:
             self.offset -= 1
 
 
+class MenuIcon(pygame.sprite.Sprite):
+    """
+    Sprite for an icon on the main popup menu.
+    """
+
+    def __init__(self, icon):
+        pygame.sprite.Sprite.__init__(self)
+        self.icon = icon
+
+        # Load the sprite sheet from the icon name
+        sprite_sheet = SpriteSheet(script_dir + '/resources/images/gui/popup_menu/{0}.png'.format(self.icon),
+                                   script_dir + '/resources/images/gui/popup_menu/{0}.json'.format(self.icon))
+        self.images = sprite_sheet.images
+
+        # Get the rectangle from the first image in the list
+        self.rect = self.images[0].get_rect()
+        self.image = self.images[0]
+
+    def select(self):
+        """
+        Change the icon sprite to the selected icon.
+        """
+        self.image = self.images[1]
+
+    def deselect(self):
+        """
+        Change the icon sprite to the not selected icon.
+        """
+        self.image = self.images[0]
+
+
+class PopupMenu:
+    """
+    Class to create a popup menu that can be hidden and shown at will
+    """
+
+    def __init__(self, position):
+        # Background frame of the popup menu
+        self.frame = pygame.image.load(script_dir + '/resources/images/gui/popup_menu/frame.png').convert_alpha()
+
+        self.draw_menu = False  # Whether or not to draw the popup menu
+        self.menu_sprites = pygame.sprite.Group()  # Sprite group for the icons
+        self.selected = 0  # The currently selected icon
+
+        # The names of the icons to be drawn
+        icon_names = ['apple', 'dumbbell', 'stats', 'controller', 'bed']
+
+        self.icons = []
+        # Create an icon sprite for each name in the list and add it to the icon list
+        for i in icon_names:
+            self.icons.append(MenuIcon(i))
+
+        # Add each sprite in the icon list to the sprite group
+        for i in range(len(self.icons)):
+            icon = self.icons[i]
+            if i == self.selected:  # Make the default selected icon glow
+                icon.select()
+
+            # Calculate the position of the icon on screen
+            icon.rect.x = 10 + (i * 15) - (icon.image.get_width() / 2)
+            icon.rect.y = position[1] + self.frame.get_height() / 2 - icon.image.get_height() / 2
+
+            # Add the icon to the sprite group.
+            self.menu_sprites.add(icon)
+
+    def toggle(self):
+        """
+        Toggles the menu on or off.
+        """
+        self.draw_menu = not self.draw_menu
+
+    def next(self):
+        """
+        Changes the selection to the next icon (to the right.)
+        """
+        if self.draw_menu:  # Only change if the menu is on screen
+
+            self.icons[self.selected].deselect()  # Deselect the current icon
+            self.selected += 1  # Change selection to the next icon
+            if self.selected >= len(self.icons):  # Wrap around if new value is invalid
+                self.selected = 0
+            self.icons[self.selected].select()  # Select the newly selected icon
+
+    def prev(self):
+        """
+        Changes the selection to the previous icon (to the left.)
+        """
+        if self.draw_menu:  # Only change if the menu is on screen
+
+            self.icons[self.selected].deselect()  # Deselect the current icon
+            self.selected -= 1  # Change selection to the previous icon
+            if self.selected < 0:  # Wrap around if new value is invalid
+                self.selected = len(self.icons) - 1
+            self.icons[self.selected].select()  # Select the newly selected icon
+
+    def draw(self, surface):
+        """
+        Draw the menu onto a given surface
+        :param surface: the surface to draw the menu on.
+        """
+        # Draw the menu only if it is toggled on.
+        if self.draw_menu:
+            surface.blit(self.frame, (3, 3))
+            self.menu_sprites.draw(surface)
+
+
 # Makes Pygame draw on the display of the RPi.
 os.environ["SDL_FBDEV"] = "/dev/fb1"
 
@@ -235,26 +526,29 @@ os.environ["SDL_FBDEV"] = "/dev/fb1"
 try:
     importlib.util.find_spec('RPi.GPIO')
     import RPi.GPIO as GPIO
+
+    on_hardware = True
 except ImportError:
     import pocket_friends.development.FakeGPIO as GPIO
+
+    on_hardware = False
 
 
 def game():
     """
-    Starts the hardware.
+    Starts the game.
     """
     pygame.init()
 
     # Hide the cursor for the Pi display.
     pygame.mouse.set_visible(False)
 
-    # The hardware is normally rendered at 80 pixels and upscaled from there. If changing displays, change the
+    # The game is normally rendered at 80 pixels and upscaled from there. If changing displays, change the
     # screen_size to reflect what the resolution of the new display is.
-    rendered_size = 80
     screen_size = 320
 
     window = pygame.display.set_mode((screen_size, screen_size))
-    surface = pygame.Surface((rendered_size, rendered_size))
+    surface = pygame.Surface((game_res, game_res))
 
     # Only really useful for PCs. Does nothing on the Raspberry Pi.
     pygame.display.set_caption('Pocket Friends {0}'.format(pocket_friends.__version__))
@@ -265,13 +559,13 @@ def game():
 
     clock = pygame.time.Clock()
 
-    # Font used for small text in the hardware. Bigger text is usually image files.
+    # Font used for small text in the game. Bigger text is usually image files.
     small_font = pygame.font.Font(script_dir + '/resources/fonts/5Pts5.ttf', 10)
 
-    # Default hardware state when the hardware first starts.
+    # Default game state when the game first starts.
     game_state = 'title'
     running = True
-    save_handler = SaveHandler()
+    data_handler = DataHandler()
 
     # A group of all the sprites on screen. Used to update all sprites at onc
     all_sprites = pygame.sprite.Group()
@@ -279,7 +573,7 @@ def game():
     # Start the GPIO handler to take in buttons from the RPi HAT.
     GPIOHandler.setup()
 
-    # Dev code used to exit the hardware. Default Down, Down, Up, Up, Down, Down, Up, Up, A, A, B
+    # Dev code used to exit the game. Default Down, Down, Up, Up, Down, Down, Up, Up, A, A, B
     dev_code = deque()
     for button in [Constants.buttons.get('j_d'), Constants.buttons.get('j_d'), Constants.buttons.get('j_u'),
                    Constants.buttons.get('j_u'), Constants.buttons.get('j_d'), Constants.buttons.get('j_d'),
@@ -309,7 +603,7 @@ def game():
 
     def draw_bg():
         """
-        Draws the main hardware background image onto a given surface.
+        Draws the main game background image onto a given surface.
         """
         bg_image = pygame.image.load(script_dir + '/resources/images/bg.png').convert()
         surface.blit(bg_image, (0, 0))
@@ -330,7 +624,7 @@ def game():
         """
         nonlocal last_input_tick
         # Register a button click so long as the last button click happened no less than two frames ago
-        if pygame.time.get_ticks() - last_input_tick > clock.get_time() * 2:
+        if pygame.time.get_ticks() - last_input_tick > clock.get_time() * 2 or not on_hardware:
             pygame.event.post(pygame.event.Event(KEYDOWN, {'key': pressed_button}))
             pygame.event.post(pygame.event.Event(KEYUP, {'key': pressed_button}))
             log_button(pressed_button)
@@ -358,7 +652,7 @@ def game():
 
     def keyboard_handler():
         """
-        Simulates key presses to GPIO button presses. Also handles quitting the hardware.
+        Simulates key presses to GPIO button presses. Also handles quitting the game.
         """
         nonlocal running
 
@@ -386,10 +680,10 @@ def game():
 
     def pre_handler():
         """
-        Runs at the beginning of each loop, handles drawing the background, controlling hardware speed, and
+        Runs at the beginning of each loop, handles drawing the background, controlling game speed, and
         controlling the GPIO button inputs and keyboard handler
         """
-        # Regulate the speed of the hardware.
+        # Regulate the speed of the game.
         clock.tick(game_fps)
 
         # Handle all inputs for both debugging and real GPIO button presses.
@@ -410,13 +704,55 @@ def game():
             surface.blit(title_image, (0, 0))
             draw()
 
-            # Show the title for 1 second then move on to the initialization phase of the hardware.
+            # Show the title for 1 second then move on to the initialization phase of the game.
             pygame.time.wait(1000)
             game_state = 'init'
 
         elif game_state == 'playground':
-            all_sprites.empty()
-            game_state = None  # Playground currently not implemented, send to error screen.
+
+            # Submenu used within the playground.
+            submenu = 'main'
+
+            while running and game_state == 'playground':
+
+                all_sprites.empty()
+
+                if submenu == 'main':
+
+                    # Create the bloop and the menu
+                    bloop = PlaygroundFriend(data_handler)
+                    all_sprites.add(bloop)
+                    popup_menu = PopupMenu((3, 3))
+
+                    while running and game_state == 'playground' and submenu == 'main':
+                        pre_handler()
+                        data_handler.update()
+
+                        for event in pygame.event.get():
+                            if event.type == pygame.KEYDOWN:
+                                if event.key == Constants.buttons.get('j_r'):
+                                    # Move selection to the next item
+                                    popup_menu.next()
+                                if event.key == Constants.buttons.get('j_l'):
+                                    # Move selection to the previous item
+                                    popup_menu.prev()
+                                if event.key == Constants.buttons.get('a'):
+                                    # Change submenu to the menu the icon points to
+                                    if popup_menu.draw_menu:
+                                        submenu = popup_menu.icons[popup_menu.selected].icon
+                                    else:  # Pet the bloop otherwise
+                                        bloop.pet()
+                                if event.key == Constants.buttons.get('b'):
+                                    # Toggle the popup menu on or off
+                                    popup_menu.toggle()
+
+                        # Draw the popup menu if toggled on
+                        popup_menu.draw(surface)
+
+                        draw()
+
+                else:  # Go to the error state if an invalid state is set.
+                    game_state = None
 
         elif game_state == 'init':
             all_sprites.empty()
@@ -424,12 +760,12 @@ def game():
             draw()
 
             # Read the save file.
-            save_handler.read_save()
+            data_handler.read_save()
 
-            # Determines if it is a new hardware or not by looking at the evolution stage. If it is -1, the egg has
-            # not been created yet, and the hardware sends you to the egg selection screen. If not, the hardware sends
+            # Determines if it is a new game or not by looking at the evolution stage. If it is -1, the egg has
+            # not been created yet, and the game sends you to the egg selection screen. If not, the game sends
             # you to the playground.
-            if save_handler.attributes['evolution_stage'] == -1:
+            if data_handler.attributes['bloop'] == '':
                 game_state = 'egg_select'
             else:
                 game_state = 'playground'
@@ -449,7 +785,7 @@ def game():
                 if submenu == 'main':
 
                     # Creates and holds the egg objects in a list.
-                    eggs = [SelectionEgg('red'), SelectionEgg('blue'), SelectionEgg('rainbow')]
+                    eggs = [SelectionEgg('dev_egg'), SelectionEgg('blue'), SelectionEgg('rainbow')]
 
                     # How many eggs per row should be displayed.
                     eggs_per_row = 3
@@ -547,28 +883,30 @@ def game():
                                     sel_up()
                                 if event.key == Constants.buttons.get('a'):
                                     # Advance to the egg info screen for the selected egg.
-                                    submenu = 'egg_info'
+                                    submenu = 'bloop_info'
 
                         # Draws the cursor on screen.
-                        cursor = pygame.image.load(script_dir + '/resources/images/clock_selector.png').convert_alpha()
+                        cursor = pygame.image.load(
+                            script_dir + '/resources/images/gui/egg_selector.png').convert_alpha()
                         surface.blit(cursor, get_cursor_coords(selected))
 
                         selected_color = eggs[selected].egg_color
 
                         draw()
 
-                elif submenu == 'egg_info':
+                elif submenu == 'bloop_info':
 
                     # Draw the selected egg on screen
                     egg = SelectionEgg(selected_color)
-                    egg.rect.x = 32
+                    egg.rect.x = 8
                     egg.rect.y = 3
                     all_sprites.add(egg)
 
                     # Info screen for the eggs.
-                    info = InfoText(small_font, egg.description)
+                    info_text = InfoText(small_font, egg.description)
+                    info_icons = EggInfo(egg.contentedness, egg.metabolism, (32, 4))
 
-                    while running and game_state == 'egg_select' and submenu == 'egg_info':
+                    while running and game_state == 'egg_select' and submenu == 'bloop_info':
 
                         pre_handler()
 
@@ -576,19 +914,28 @@ def game():
                             if event.type == pygame.KEYDOWN:
                                 if event.key == Constants.buttons.get('j_d'):
                                     # Scroll down on the info screen.
-                                    info.scroll_down()
+                                    info_text.scroll_down()
                                 if event.key == Constants.buttons.get('j_u'):
                                     # Scroll up on the info screen.
-                                    info.scroll_up()
+                                    info_text.scroll_up()
                                 if event.key == Constants.buttons.get('a'):
-                                    # Go to an invalid hardware state if continuing.
-                                    game_state = None
+                                    # Write save file with new attributes
+                                    data_handler.attributes['bloop'] = egg.egg_color
+                                    data_handler.attributes['health'] = 10
+                                    data_handler.attributes['hunger'] = 10
+                                    data_handler.attributes['happiness'] = 10
+                                    data_handler.attributes['evolution_stage'] = 'egg'
+                                    data_handler.write_save()
+
+                                    # Go to playground
+                                    game_state = 'playground'
                                 if event.key == Constants.buttons.get('b'):
                                     # Go back to the egg selection screen.
                                     submenu = 'main'
 
                         # Draw the info screen.
-                        info.draw(surface)
+                        info_text.draw(surface)
+                        info_icons.draw(surface)
 
                         draw()
 
@@ -596,10 +943,10 @@ def game():
                     game_state = None
 
         else:
-            # Error screen. This appears when an invalid hardware state has been selected.
+            # Error screen. This appears when an invalid game state has been selected.
 
             all_sprites.empty()
-            frames_passed = 0  # Counter for frames, helps ensure the hardware isn't frozen.
+            frames_passed = 0  # Counter for frames, helps ensure the game isn't frozen.
 
             while running and game_state != 'title':
 
@@ -616,7 +963,7 @@ def game():
 
                 # Draws the frame counter.
                 frame_counter = small_font.render('frames: {0}'.format(frames_passed), False, (64, 64, 64))
-                surface.blit(frame_counter, (1, 70))
+                surface.blit(frame_counter, (1, game_res - 10))
 
                 for event in pygame.event.get():
                     if event.type == pygame.KEYDOWN:
@@ -629,7 +976,7 @@ def game():
 
 def main():
     """
-    Calls the hardware() function to start the hardware.
+    Calls the game() function to start the game.
     """
     game()
 
