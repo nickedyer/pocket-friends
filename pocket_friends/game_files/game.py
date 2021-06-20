@@ -230,7 +230,7 @@ class SelectionEgg(pygame.sprite.Sprite):
 
         # Gets the description off the egg from the JSON file.
         self.description = json_file.get('description')
-        self.contentness = json_file.get('contentness')
+        self.contentedness = json_file.get('contentedness')
         self.metabolism = json_file.get('metabolism')
 
         # Load the egg from the given color and get the bounding rectangle for the image.
@@ -254,11 +254,11 @@ class SelectionEgg(pygame.sprite.Sprite):
 
 class EggInfo:
     """
-    Class to draw the contentness and metabolism value off the egg on the info screen.
+    Class to draw the contentedness and metabolism value off the egg on the info screen.
     """
 
-    def __init__(self, contentness, metabolism, location):
-        self.contentness = contentness
+    def __init__(self, contentedness, metabolism, location):
+        self.contentedness = contentedness
         self.metabolism = metabolism
         self.x = location[0]
         self.y = location[1]
@@ -272,9 +272,9 @@ class EggInfo:
         apple = pygame.image.load(script_dir + '/resources/images/gui/apple.png').convert_alpha()
         self.surface.blit(apple, (1, 9))
 
-        # Draw 5 stars. If the value of the contentness is less than the current star, make it a blank star.
+        # Draw 5 stars. If the value of the contentedness is less than the current star, make it a blank star.
         for i in range(5):
-            if i < self.contentness:
+            if i < self.contentedness:
                 star = pygame.image.load(script_dir + '/resources/images/gui/star.png').convert_alpha()
             else:
                 star = pygame.image.load(script_dir + '/resources/images/gui/blank_star.png').convert_alpha()
@@ -904,7 +904,7 @@ def game():
 
                     # Info screen for the eggs.
                     info_text = InfoText(small_font, egg.description)
-                    info_icons = EggInfo(egg.contentness, egg.metabolism, (32, 4))
+                    info_icons = EggInfo(egg.contentedness, egg.metabolism, (32, 4))
 
                     while running and game_state == 'egg_select' and submenu == 'bloop_info':
 
