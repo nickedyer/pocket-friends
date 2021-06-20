@@ -20,7 +20,6 @@ if __name__ == '__main__':
                 save_dir = os.path.join(Path.home(), '.pocket_friends')
                 os.remove(save_dir + '/save.json')
 
-
     if not enable_dev:
         game_main()
     else:
