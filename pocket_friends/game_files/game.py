@@ -534,7 +534,7 @@ except ImportError:
     on_hardware = False
 
 
-def game():
+def game(screen_size):
     """
     Starts the game.
     """
@@ -542,10 +542,6 @@ def game():
 
     # Hide the cursor for the Pi display.
     pygame.mouse.set_visible(False)
-
-    # The game is normally rendered at 80 pixels and upscaled from there. If changing displays, change the
-    # screen_size to reflect what the resolution of the new display is.
-    screen_size = 320
 
     window = pygame.display.set_mode((screen_size, screen_size))
     surface = pygame.Surface((game_res, game_res))
@@ -974,11 +970,11 @@ def game():
                 draw()
 
 
-def main():
+def main(screen_size=320):
     """
     Calls the game() function to start the game.
     """
-    game()
+    game(screen_size)
 
     GPIOHandler.teardown()
     pygame.quit()
