@@ -6,7 +6,11 @@ the hardware can be run without the actual hardware.
 # Constants used by RPi.GPIO
 BOARD = 0
 IN = 0
+OUT = 1
 FALLING = 0
+
+HIGH = 1
+LOW = 0
 
 
 def setmode(new_mode):
@@ -28,6 +32,16 @@ def setup(channel, mode, initial=None, pull_up_down=None):
     pass
 
 
+def output(channel, set):
+    """
+    Fake function to set a fake channel output.
+    :param channel:
+    :param set:
+    :return:
+    """
+    pass
+
+
 def add_event_detect(channel, edge_type, callback=None, bouncetime=0):
     """
     Fake function to add a non-existent event detect.
@@ -43,7 +57,7 @@ def event_detected(channel):
     """
     Fake function to detect an event. Always returns false.
     :param channel:
-    :return:
+    :return: False
     """
     return False
 
