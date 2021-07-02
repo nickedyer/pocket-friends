@@ -4,6 +4,7 @@ import argparse
 import pygame
 import sys
 from pocket_friends.game_files.game import main as game_main
+from pocket_friends.development.dev_menu import main as dev_main
 
 
 def main():
@@ -16,7 +17,8 @@ def main():
 
     # Adds parser arguments.
     parser.add_argument('-D', '--delete-save', action='store_true', help='Deletes the save file if it exists.')
-    parser.add_argument('-s', '--size', type=int, default=320, help='Sets the size of the window.')
+    parser.add_argument('-s', '--size', type=int, default=240, help='Sets the size of the window.')
+    parser.add_argument('--dev', action='store_true', help='Deletes the save file if it exists.')
 
     # Parse the arguments given
     args = parser.parse_args()
@@ -34,8 +36,10 @@ def main():
     # Set the screen size
     screen_size = int(args.size)
 
-    # Start the game
-    game_main(screen_size)
+    if not args.dev:
+        game_main(screen_size)
+    else:
+        dev_main()
 
     # Cleanup
     pygame.quit()
