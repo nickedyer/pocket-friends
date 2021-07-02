@@ -29,6 +29,15 @@ def run_button_test():
     GPIOHandler.setup()
 
 
+def backlight_test():
+    """
+    Turns off the backlight for 5 seconds.
+    """
+    GPIOHandler.turn_off_backlight()
+    time.sleep(5)
+    GPIOHandler.turn_on_backlight()
+
+
 def clear_screen():
     """
     Clears the screen.
@@ -55,9 +64,9 @@ def quit_menu():
 
 def quit_with_error():
     """
-    Quits the menu with error code 3.
+    Quits the menu with error code 2.
     """
-    exit(3)
+    exit(2)
 
 
 def change_menu(new_menu):
@@ -96,6 +105,7 @@ def main():
     main_menu = Menu('Pocket Friends Dev Menu')
     main_menu.add_option(Menu.Option('Start Game', start_game))
     main_menu.add_option(Menu.Option('Button Test', run_button_test))
+    main_menu.add_option(Menu.Option('Backlight Test', backlight_test))
     main_menu.add_option(Menu.Option('Restart Dev Menu', quit_with_error))
     main_menu.add_option(Menu.Option('Shutdown Pi', change_menu, 'shutdown'))
     main_menu.add_option(Menu.Option('Restart Pi', change_menu, 'restart'))
