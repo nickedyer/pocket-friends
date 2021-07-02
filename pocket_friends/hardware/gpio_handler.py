@@ -24,6 +24,9 @@ class Constants:
         'j_l': 13,  # Joystick left
         'j_r': 16  # Joystick right
     }
+    hardware = {
+        'backlight':  37
+    }
 
 
 class GPIOHandler:
@@ -54,6 +57,8 @@ class GPIOHandler:
         GPIO.add_event_detect(Constants.buttons.get('j_l'), GPIO.FALLING)
         GPIO.add_event_detect(Constants.buttons.get('j_r'), GPIO.FALLING)
 
+        GPIO.setup(Constants.hardware.get('backlight'), GPIO.OUT, initial=GPIO.HIGH)
+
     @staticmethod
     def teardown():
         """
@@ -69,3 +74,17 @@ class GPIOHandler:
         :return: True if the button is has been pressed, False otherwise
         """
         return GPIO.event_detected(button)
+
+    @staticmethod
+    def turn_on_backlight():
+        """
+        Turns on the TFT backlight.
+        """
+        GPIO.output(Constants.hardware.get('backlight'), GPIO.HIGH)
+
+    @staticmethod
+    def turn_off_backlight():
+        """
+        Turns off the TFT backlight.
+        """
+        GPIO.output(Constants.hardware.get('backlight'), GPIO.LOW)
