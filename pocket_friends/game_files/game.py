@@ -970,7 +970,7 @@ def game(screen_size):
                 draw()
 
 
-def main(screen_size=320):
+def main(screen_size=240):
     """
     Calls the game() function to start the game.
     """
