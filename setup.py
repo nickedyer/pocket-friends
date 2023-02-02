@@ -21,6 +21,6 @@ setuptools.setup(
     classifiers=[
     ],
     install_requires=required,
-    python_requires='>=3.6',
+    python_requires='>=3.10',
     include_package_data=True,
 )

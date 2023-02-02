@@ -13,7 +13,7 @@ There are currently no releases of the game. To install the current version on G
 ## Installing From Source
 
 Requirements:
-- Python 3.6 or greater
+- Python 3.10 or greater
 - Pip
 - Git
 
